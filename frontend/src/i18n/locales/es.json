@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "Lovable Bolt",
+    "tagline": "Plataforma impulsada por IA para tareas complejas"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "chat": "Chat IA",
+    "tasks": "Tareas",
+    "analytics": "Analiticas",
+    "notifications": "Notificaciones",
+    "settings": "Configuracion",
+    "admin": "Panel de Admin",
+    "logout": "Cerrar Sesion"
+  },
+  "auth": {
+    "login": "Iniciar Sesion",
+    "register": "Registrarse",
+    "email": "Correo",
+    "password": "Contrasena",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "forgotPassword": "Olvidaste tu contrasena?",
+    "noAccount": "No tienes cuenta?",
+    "hasAccount": "Ya tienes cuenta?"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido, {{name}}",
+    "totalTasks": "Total de Tareas",
+    "completedTasks": "Completadas",
+    "activeUsers": "Usuarios Activos",
+    "aiConversations": "Conversaciones IA",
+    "recentActivity": "Actividad Reciente",
+    "quickActions": "Acciones Rapidas",
+    "performance": "Rendimiento"
+  },
+  "chat": {
+    "placeholder": "Escribe tu mensaje...",
+    "send": "Enviar",
+    "newConversation": "Nueva Conversacion",
+    "history": "Historial",
+    "thinking": "Pensando..."
+  },
+  "tasks": {
+    "create": "Crear Tarea",
+    "title": "Titulo",
+    "description": "Descripcion",
+    "status": "Estado",
+    "priority": "Prioridad",
+    "dueDate": "Fecha Limite",
+    "pending": "Pendiente",
+    "inProgress": "En Progreso",
+    "completed": "Completada",
+    "failed": "Fallida",
+    "low": "Baja",
+    "medium": "Media",
+    "high": "Alta",
+    "critical": "Critica"
+  },
+  "gamification": {
+    "points": "Puntos",
+    "level": "Nivel",
+    "streak": "Dias Seguidos",
+    "achievements": "Logros",
+    "leaderboard": "Tabla de Lideres"
+  },
+  "common": {
+    "search": "Buscar...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "Cargando...",
+    "noResults": "Sin resultados",
+    "confirm": "Confirmar",
+    "back": "Volver"
+  }
+}
