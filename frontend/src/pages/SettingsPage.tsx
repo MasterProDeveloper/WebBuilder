@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Globe, User, Shield } from 'lucide-react';
+import { Save, Globe, User, Shield, Bot, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../lib/api';
 import { languages } from '../i18n';
+import { getOpenAIKey, setOpenAIKey } from '../lib/localBackend';
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -15,6 +16,11 @@ export default function SettingsPage() {
   });
   const [saved, setSaved] = useState(false);
 
+  // AI settings
+  const [apiKey, setApiKey] = useState(getOpenAIKey());
+  const [showKey, setShowKey] = useState(false);
+  const [aiSaved, setAiSaved] = useState(false);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -25,6 +31,13 @@ export default function SettingsPage() {
     } catch {
       // ignore
     }
+  };
+
+  const handleSaveAI = (e: React.FormEvent) => {
+    e.preventDefault();
+    setOpenAIKey(apiKey);
+    setAiSaved(true);
+    setTimeout(() => setAiSaved(false), 3000);
   };
 
   const changeLanguage = (code: string) => {
@@ -71,7 +84,59 @@ export default function SettingsPage() {
             <Save className="w-4 h-4 mr-2" />
             {t('common.save')}
           </button>
-          {saved && <p className="text-sm text-green-600">Profile saved successfully!</p>}
+          {saved && (
+            <p className="text-sm text-green-600 flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" /> Profile saved successfully!
+            </p>
+          )}
+        </form>
+      </div>
+
+      {/* AI Configuration */}
+      <div className="card">
+        <div className="flex items-center gap-3 mb-4">
+          <Bot className="w-5 h-5 text-gray-400" />
+          <h2 className="text-lg font-semibold">AI Configuration</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Add your OpenAI API key to enable full GPT-4 powered AI chat, recommendations, and predictive analytics.
+          Your key is stored locally in your browser and never sent to our servers.
+        </p>
+        <form onSubmit={handleSaveAI} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">OpenAI API Key</label>
+            <div className="relative">
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="sk-..."
+                className="input-field pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey(!showKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Get your API key from{' '}
+              <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">
+                platform.openai.com/api-keys
+              </a>
+            </p>
+          </div>
+          <button type="submit" className="btn-primary">
+            <Save className="w-4 h-4 mr-2" />
+            Save AI Settings
+          </button>
+          {aiSaved && (
+            <p className="text-sm text-green-600 flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" /> AI settings saved! The chat will now use GPT-4.
+            </p>
+          )}
         </form>
       </div>
 

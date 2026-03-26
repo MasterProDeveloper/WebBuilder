@@ -67,7 +67,7 @@ async function start() {
   await testConnection();
 
   app.listen(config.port, () => {
-    logger.info(`Lovable Bolt API running on port ${config.port} [${config.env}]`);
+    logger.info(`SiteCloud API running on port ${config.port} [${config.env}]`);
   });
 }
 

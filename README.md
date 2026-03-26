@@ -1,17 +1,17 @@
-# Lovable Bolt
+# SiteCloud
 
 AI-powered platform for handling heavy and complex tasks with seamless efficiency.
 
 ## Architecture Overview
 
 ```
-lovable-bolt/
+sitecloud/
 ├── frontend/          # React 18 + Vite + TypeScript + Tailwind CSS
 │   ├── src/
 │   │   ├── components/    # Layout, Sidebar, Header
 │   │   ├── pages/         # Dashboard, Chat, Tasks, Analytics, Admin, Settings
 │   │   ├── store/         # Zustand state management
-│   │   ├── lib/           # API client (Axios)
+│   │   ├── lib/           # API client (Axios) + Local storage backend
 │   │   └── i18n/          # Multi-language support (en, es, fr, de, ar)
 │   └── public/
 ├── backend/           # Node.js + Express + TypeScript
@@ -27,6 +27,11 @@ lovable-bolt/
 ```
 
 ## Features
+
+### Fully Functional Offline Mode
+- **Local Storage Backend** - All features work without a backend server
+- **Automatic Fallback** - Seamlessly falls back to local storage when API is unavailable
+- **Client-Side AI** - Direct OpenAI API integration from the browser (API key in Settings)
 
 ### AI-Powered Intelligence
 - **AI Chat** - GPT-4 powered conversations with full history
@@ -57,7 +62,7 @@ lovable-bolt/
 ### Gamification
 - Points system with level progression
 - Daily streak tracking
-- Achievement system (First Login, Chat Starter, Task Master, Power User, Data Analyst)
+- Achievement system
 - Global leaderboard
 
 ### Multi-Language Support
@@ -67,7 +72,7 @@ lovable-bolt/
 
 ### Security
 - JWT-based authentication with refresh tokens
-- bcrypt password hashing
+- bcrypt password hashing (SHA-256 in local mode)
 - Role-based access control (user, admin, moderator)
 - Helmet security headers
 - CORS configuration
@@ -80,12 +85,12 @@ lovable-bolt/
 |-------|-----------|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS |
 | State Management | Zustand |
-| HTTP Client | Axios |
+| HTTP Client | Axios (with local fallback) |
 | Icons | Lucide React |
 | Routing | React Router v6 |
 | Backend | Node.js, Express, TypeScript |
-| AI Integration | OpenAI GPT-4 API |
-| Database | PostgreSQL 16 |
+| AI Integration | OpenAI GPT-4 API (client + server) |
+| Database | PostgreSQL 16 (with localStorage fallback) |
 | Caching | Redis 7 |
 | Validation | Zod |
 | Auth | JWT + bcrypt |
@@ -94,135 +99,116 @@ lovable-bolt/
 
 ## Getting Started
 
-### Prerequisites
+### Quick Start (No Backend Required)
+
+The frontend works standalone with localStorage as the backend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173, register an account, and start using all features immediately. The first registered user automatically gets admin role.
+
+To enable AI chat with GPT-4, go to Settings > AI Configuration and add your OpenAI API key.
+
+### Full Stack Setup
+
+#### Prerequisites
 - Node.js 20+
 - Docker & Docker Compose (for database)
 - OpenAI API key (for AI features)
 
-### Quick Start
+#### 1. Clone and configure
 
-1. **Clone and setup**
 ```bash
-git clone https://github.com/MasterProDeveloper/WebBuilder.git
-cd WebBuilder
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
-2. **Start infrastructure**
+#### 2. Start infrastructure
+
 ```bash
-docker-compose up -d postgres redis
+docker compose up -d postgres redis
 ```
 
-3. **Install dependencies and run**
-```bash
-# Backend
-cd backend && npm install && npm run dev
+#### 3. Start backend
 
-# Frontend (new terminal)
-cd frontend && npm install && npm run dev
+```bash
+cd backend
+npm install
+npm run dev
 ```
 
-4. **Access the application**
-- Frontend: http://localhost:5173
-- API: http://localhost:3001
-- Health check: http://localhost:3001/api/health
+#### 4. Start frontend
 
-### Docker (Full Stack)
 ```bash
-docker-compose up -d
-# Frontend: http://localhost:80
-# API: http://localhost:3001
+cd frontend
+npm install
+npm run dev
 ```
+
+#### 5. Open the app
+
+Navigate to http://localhost:5173
+
+### Docker Compose (Full Stack)
+
+```bash
+docker compose up --build
+```
+
+Access at http://localhost
 
 ## API Endpoints
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/auth/register | Register new user |
-| POST | /api/auth/login | Login |
-| POST | /api/auth/refresh | Refresh tokens |
-| GET | /api/auth/me | Get current user |
-| PATCH | /api/auth/me | Update profile |
+### Auth
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login
+- `POST /api/auth/refresh` - Refresh tokens
+- `GET /api/auth/me` - Get current user
+- `PATCH /api/auth/me` - Update profile
 
 ### AI
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/ai/chat | Send chat message |
-| GET | /api/ai/conversations | List conversations |
-| GET | /api/ai/conversations/:id/messages | Get messages |
-| POST | /api/ai/recommendations | Get AI recommendations |
-| POST | /api/ai/predict | Predictive analytics |
-| POST | /api/ai/search | AI-enhanced search |
+- `POST /api/ai/chat` - Chat with AI
+- `GET /api/ai/conversations` - List conversations
+- `GET /api/ai/conversations/:id/messages` - Get conversation messages
+- `POST /api/ai/recommendations` - Get AI recommendations
+- `POST /api/ai/predict` - Predictive analytics
+- `POST /api/ai/search` - AI-enhanced search
 
 ### Tasks
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/tasks | List tasks (filterable) |
-| POST | /api/tasks | Create task |
-| GET | /api/tasks/:id | Get task |
-| PATCH | /api/tasks/:id | Update task |
-| DELETE | /api/tasks/:id | Delete task |
+- `GET /api/tasks` - List tasks (with filters)
+- `POST /api/tasks` - Create task
+- `GET /api/tasks/:id` - Get task
+- `PATCH /api/tasks/:id` - Update task
+- `DELETE /api/tasks/:id` - Delete task
 
 ### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/analytics/dashboard | Dashboard metrics (admin) |
-| GET | /api/analytics/timeseries/:type | Time series data (admin) |
-| GET | /api/analytics/my-activity | User activity |
-| POST | /api/analytics/track | Track event |
+- `GET /api/analytics/dashboard` - Dashboard metrics (admin)
+- `GET /api/analytics/timeseries/:eventType` - Time series (admin)
+- `GET /api/analytics/my-activity` - User's activity
+- `POST /api/analytics/track` - Track event
 
 ### Notifications
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/notifications | List notifications |
-| GET | /api/notifications/unread-count | Unread count |
-| PATCH | /api/notifications/:id/read | Mark as read |
-| POST | /api/notifications/read-all | Mark all read |
+- `GET /api/notifications` - List notifications
+- `GET /api/notifications/unread-count` - Unread count
+- `PATCH /api/notifications/:id/read` - Mark read
+- `POST /api/notifications/read-all` - Mark all read
 
 ### Gamification
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/gamification/points | User points |
-| GET | /api/gamification/achievements | User achievements |
-| GET | /api/gamification/leaderboard | Global leaderboard |
+- `GET /api/gamification/points` - User points
+- `GET /api/gamification/achievements` - User achievements
+- `GET /api/gamification/leaderboard` - Global leaderboard
+- `POST /api/gamification/check-achievements` - Check achievements
 
 ### Admin
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/admin/users | List all users |
-| PATCH | /api/admin/users/:id | Update user role/status |
-| GET | /api/admin/metrics | System metrics |
-| GET | /api/admin/audit-logs | Audit logs |
-| GET | /api/admin/health | System health |
-
-## Database Schema
-
-The PostgreSQL schema includes:
-- **users** - User accounts with roles and preferences
-- **refresh_tokens** - JWT refresh token storage
-- **conversations** / **messages** - AI chat history
-- **tasks** - Task management with metadata
-- **workflows** - Automated workflow definitions
-- **analytics_events** - Event tracking
-- **performance_metrics** - System metrics
-- **notifications** - User notifications
-- **recommendations** - AI-generated recommendations
-- **user_points** / **achievements** / **user_achievements** - Gamification
-- **audit_logs** - Security audit trail
-
-## Deployment
-
-### AWS / GCP / Azure
-The application is containerized and ready for deployment on any cloud platform:
-- Frontend: Serve via CDN (CloudFront, Cloud CDN) or container
-- Backend: ECS, Cloud Run, or AKS
-- Database: RDS, Cloud SQL, or Azure Database
-- Redis: ElastiCache, Memorystore, or Azure Cache
-
-### Environment Variables
-See [.env.example](.env.example) for all required configuration.
+- `GET /api/admin/users` - List users
+- `PATCH /api/admin/users/:id` - Update user
+- `GET /api/admin/metrics` - System metrics
+- `GET /api/admin/audit-logs` - Audit logs
+- `GET /api/admin/health` - System health
 
 ## License
 

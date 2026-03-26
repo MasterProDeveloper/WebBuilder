@@ -1,28 +1,28 @@
 {
   "app": {
-    "name": "Lovable Bolt",
+    "name": "SiteCloud",
     "tagline": "Plataforma impulsada por IA para tareas complejas"
   },
   "nav": {
     "dashboard": "Panel",
     "chat": "Chat IA",
     "tasks": "Tareas",
-    "analytics": "Analiticas",
+    "analytics": "Analíticas",
     "notifications": "Notificaciones",
-    "settings": "Configuracion",
+    "settings": "Configuración",
     "admin": "Panel de Admin",
-    "logout": "Cerrar Sesion"
+    "logout": "Cerrar Sesión"
   },
   "auth": {
-    "login": "Iniciar Sesion",
+    "login": "Iniciar Sesión",
     "register": "Registrarse",
-    "email": "Correo",
-    "password": "Contrasena",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
     "firstName": "Nombre",
     "lastName": "Apellido",
-    "forgotPassword": "Olvidaste tu contrasena?",
-    "noAccount": "No tienes cuenta?",
-    "hasAccount": "Ya tienes cuenta?"
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes una cuenta?",
+    "hasAccount": "¿Ya tienes una cuenta?"
   },
   "dashboard": {
     "welcome": "Bienvenido, {{name}}",
@@ -31,23 +31,23 @@
     "activeUsers": "Usuarios Activos",
     "aiConversations": "Conversaciones IA",
     "recentActivity": "Actividad Reciente",
-    "quickActions": "Acciones Rapidas",
+    "quickActions": "Acciones Rápidas",
     "performance": "Rendimiento"
   },
   "chat": {
     "placeholder": "Escribe tu mensaje...",
     "send": "Enviar",
-    "newConversation": "Nueva Conversacion",
-    "history": "Historial",
+    "newConversation": "Nueva Conversación",
+    "history": "Historial de Conversaciones",
     "thinking": "Pensando..."
   },
   "tasks": {
     "create": "Crear Tarea",
-    "title": "Titulo",
-    "description": "Descripcion",
+    "title": "Título",
+    "description": "Descripción",
     "status": "Estado",
     "priority": "Prioridad",
-    "dueDate": "Fecha Limite",
+    "dueDate": "Fecha Límite",
     "pending": "Pendiente",
     "inProgress": "En Progreso",
     "completed": "Completada",
@@ -55,14 +55,14 @@
     "low": "Baja",
     "medium": "Media",
     "high": "Alta",
-    "critical": "Critica"
+    "critical": "Crítica"
   },
   "gamification": {
     "points": "Puntos",
     "level": "Nivel",
-    "streak": "Dias Seguidos",
+    "streak": "Racha de Días",
     "achievements": "Logros",
-    "leaderboard": "Tabla de Lideres"
+    "leaderboard": "Clasificación"
   },
   "common": {
     "search": "Buscar...",

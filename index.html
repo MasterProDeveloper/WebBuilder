@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Lovable Bolt - AI-powered platform for handling heavy and complex tasks with seamless efficiency">
+  <meta name="description" content="SiteCloud - AI-powered platform for handling heavy and complex tasks with seamless efficiency">
   <meta name="theme-color" content="#4c6ef5">
-  <title>Lovable Bolt - AI-Powered Platform</title>
+  <title>SiteCloud - AI-Powered Platform</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234c6ef5' stroke-width='2'%3E%3Cpolygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,7 +48,7 @@
 
   <script>
   // =====================================================================
-  // Lovable Bolt - Complete Standalone Application
+  // SiteCloud - Complete Standalone Application
   // =====================================================================
 
   // --- State Management ---
@@ -79,7 +79,7 @@
     subscribe(fn) { this._listeners.push(fn); },
     
     init() {
-      const saved = localStorage.getItem('lovable_bolt_state');
+      const saved = localStorage.getItem('sitecloud_state');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -94,14 +94,14 @@
     save() {
       const toSave = { ...this._state };
       delete toSave._listeners;
-      localStorage.setItem('lovable_bolt_state', JSON.stringify(toSave));
+      localStorage.setItem('sitecloud_state', JSON.stringify(toSave));
     }
   };
 
   // --- i18n ---
   const translations = {
     en: {
-      'app.name': 'Lovable Bolt',
+      'app.name': 'SiteCloud',
       'app.tagline': 'AI-Powered Platform for Complex Tasks',
       'nav.dashboard': 'Dashboard', 'nav.chat': 'AI Chat', 'nav.tasks': 'Tasks',
       'nav.analytics': 'Analytics', 'nav.notifications': 'Notifications',
@@ -128,7 +128,7 @@
       'settings.profile': 'Profile', 'settings.language': 'Language', 'settings.security': 'Security',
     },
     es: {
-      'app.name': 'Lovable Bolt', 'app.tagline': 'Plataforma IA para tareas complejas',
+      'app.name': 'SiteCloud', 'app.tagline': 'Plataforma IA para tareas complejas',
       'nav.dashboard': 'Panel', 'nav.chat': 'Chat IA', 'nav.tasks': 'Tareas',
       'nav.analytics': 'Analiticas', 'nav.notifications': 'Notificaciones',
       'nav.settings': 'Configuracion', 'nav.admin': 'Admin', 'nav.logout': 'Salir',
@@ -150,7 +150,7 @@
       'gamification.achievements': 'Logros', 'gamification.leaderboard': 'Clasificacion',
     },
     fr: {
-      'app.name': 'Lovable Bolt', 'app.tagline': 'Plateforme IA pour taches complexes',
+      'app.name': 'SiteCloud', 'app.tagline': 'Plateforme IA pour taches complexes',
       'nav.dashboard': 'Tableau de Bord', 'nav.chat': 'Chat IA', 'nav.tasks': 'Taches',
       'nav.analytics': 'Analytiques', 'nav.settings': 'Parametres', 'nav.logout': 'Deconnexion',
       'auth.login': 'Connexion', 'auth.register': 'Inscription', 'auth.email': 'Email',
@@ -161,7 +161,7 @@
       'gamification.points': 'Points', 'gamification.level': 'Niveau',
     },
     de: {
-      'app.name': 'Lovable Bolt', 'app.tagline': 'KI-Plattform fuer komplexe Aufgaben',
+      'app.name': 'SiteCloud', 'app.tagline': 'KI-Plattform fuer komplexe Aufgaben',
       'nav.dashboard': 'Dashboard', 'nav.chat': 'KI-Chat', 'nav.tasks': 'Aufgaben',
       'nav.analytics': 'Analytik', 'nav.settings': 'Einstellungen', 'nav.logout': 'Abmelden',
       'auth.login': 'Anmelden', 'auth.register': 'Registrieren',
@@ -170,7 +170,7 @@
       'dashboard.welcome': 'Willkommen', 'tasks.create': 'Aufgabe erstellen',
     },
     ar: {
-      'app.name': 'Lovable Bolt', 'app.tagline': 'منصة ذكاء اصطناعي للمهام المعقدة',
+      'app.name': 'SiteCloud', 'app.tagline': 'منصة ذكاء اصطناعي للمهام المعقدة',
       'nav.dashboard': 'لوحة القيادة', 'nav.chat': 'محادثة ذكية', 'nav.tasks': 'المهام',
       'nav.analytics': 'التحليلات', 'nav.settings': 'الإعدادات', 'nav.logout': 'خروج',
       'auth.login': 'دخول', 'auth.register': 'تسجيل', 'auth.email': 'البريد',
@@ -245,7 +245,7 @@
   function getAIResponse(userMsg) {
     const lower = userMsg.toLowerCase();
     if (lower.includes('hello') || lower.includes('hi')) {
-      return "Hello! I'm Lovable Bolt AI, your intelligent assistant. I can help you with:\n\n- **Task Management** - Create, organize, and optimize your workflow\n- **Data Analysis** - Get insights from your metrics\n- **Recommendations** - AI-powered suggestions for improvement\n- **Predictions** - Forecast trends and outcomes\n\nHow can I assist you today?";
+      return "Hello! I'm SiteCloud AI, your intelligent assistant. I can help you with:\n\n- **Task Management** - Create, organize, and optimize your workflow\n- **Data Analysis** - Get insights from your metrics\n- **Recommendations** - AI-powered suggestions for improvement\n- **Predictions** - Forecast trends and outcomes\n\nHow can I assist you today?";
     }
     if (lower.includes('help')) {
       return "I'm here to help! Here's what I can do:\n\n1. **Analyze data** - Ask me about your metrics or trends\n2. **Manage tasks** - I can help organize your workflow\n3. **Generate reports** - Get summaries and insights\n4. **Make predictions** - Forecast future outcomes\n5. **Optimize processes** - Suggestions for improvement\n\nJust ask me anything!";
@@ -343,7 +343,7 @@
       </section>
 
       <footer class="border-t border-white/10 py-8 text-center text-sm text-gray-500 px-6">
-        <p>&copy; 2024 Lovable Bolt. Built with performance and intelligence in mind.</p>
+        <p>&copy; 2024 SiteCloud. Built with performance and intelligence in mind.</p>
       </footer>
     </div>`;
   }
@@ -549,7 +549,7 @@
         ` : `
           <div class="text-center py-8 text-gray-400">
             <span class="w-12 h-12 mx-auto block opacity-30 mb-3">${icons.chat}</span>
-            <p>Start using Lovable Bolt to see your activity here</p>
+            <p>Start using SiteCloud to see your activity here</p>
           </div>
         `}
       </div>
@@ -609,7 +609,7 @@
           ${msgs.length === 0 ? `
             <div class="flex flex-col items-center justify-center h-full text-gray-400">
               <span class="w-16 h-16 opacity-30 mb-4">${icons.bot}</span>
-              <h3 class="text-lg font-medium text-gray-600">Lovable Bolt AI</h3>
+              <h3 class="text-lg font-medium text-gray-600">SiteCloud AI</h3>
               <p class="text-sm mt-1">Ask me anything. I'm here to help.</p>
             </div>
           ` : msgs.map(m => `
@@ -921,7 +921,7 @@
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         if (email && password.length >= 6) {
-          const savedState = localStorage.getItem('lovable_bolt_state');
+          const savedState = localStorage.getItem('sitecloud_state');
           let user = { firstName: 'User', lastName: '', email, role: 'admin' };
           if (savedState) {
             const parsed = JSON.parse(savedState);

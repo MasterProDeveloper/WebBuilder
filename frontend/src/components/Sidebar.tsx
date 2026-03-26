@@ -7,7 +7,7 @@ import {
   BarChart3,
   Settings,
   Shield,
-  Zap,
+  Cloud,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -36,7 +36,7 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center h-16 px-4 border-b border-gray-100">
-        <Zap className="w-8 h-8 text-primary-600 flex-shrink-0" />
+        <Cloud className="w-8 h-8 text-primary-600 flex-shrink-0" />
         {sidebarOpen && (
           <span className="ml-3 text-xl font-bold text-gray-900 animate-fade-in">
             {t('app.name')}
