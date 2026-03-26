@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Globe, User, Shield, Bot, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Save, Globe, User, Shield, Bot, Eye, EyeOff, CheckCircle, Volume2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../lib/api';
 import { languages } from '../i18n';
 import { getOpenAIKey, setOpenAIKey } from '../lib/localBackend';
+import { getElevenLabsKey, setElevenLabsKey } from '../lib/elevenlabs';
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -20,6 +21,11 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState(getOpenAIKey());
   const [showKey, setShowKey] = useState(false);
   const [aiSaved, setAiSaved] = useState(false);
+
+  // ElevenLabs settings
+  const [elevenKey, setElevenKey] = useState(getElevenLabsKey());
+  const [showElevenKey, setShowElevenKey] = useState(false);
+  const [elevenSaved, setElevenSaved] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +46,20 @@ export default function SettingsPage() {
     setTimeout(() => setAiSaved(false), 3000);
   };
 
+  const handleSaveEleven = (e: React.FormEvent) => {
+    e.preventDefault();
+    setElevenLabsKey(elevenKey);
+    setElevenSaved(true);
+    setTimeout(() => setElevenSaved(false), 3000);
+  };
+
   const changeLanguage = (code: string) => {
     i18n.changeLanguage(code);
     localStorage.setItem('language', code);
   };
+
+  const hasEnvOpenAI = !!import.meta.env.VITE_OPENAI_API_KEY;
+  const hasEnvEleven = !!import.meta.env.VITE_ELEVENLABS_API_KEY;
 
   return (
     <div className="max-w-2xl space-y-6 animate-fade-in">
@@ -96,11 +112,16 @@ export default function SettingsPage() {
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
           <Bot className="w-5 h-5 text-gray-400" />
-          <h2 className="text-lg font-semibold">AI Configuration</h2>
+          <h2 className="text-lg font-semibold">AI Configuration (OpenAI)</h2>
+          {hasEnvOpenAI && (
+            <span className="badge-success text-xs">Configured via env</span>
+          )}
         </div>
         <p className="text-sm text-gray-500 mb-4">
-          Add your OpenAI API key to enable full GPT-4 powered AI chat, recommendations, and predictive analytics.
-          Your key is stored locally in your browser and never sent to our servers.
+          Your OpenAI API key powers GPT-4 AI chat, recommendations, and predictive analytics.
+          {hasEnvOpenAI
+            ? ' A key is already configured via environment variable. You can override it below.'
+            : ' Add your key below to enable AI features.'}
         </p>
         <form onSubmit={handleSaveAI} className="space-y-4">
           <div>
@@ -110,7 +131,7 @@ export default function SettingsPage() {
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
+                placeholder={hasEnvOpenAI ? 'Using env variable (override here)' : 'sk-proj-...'}
                 className="input-field pr-10"
               />
               <button
@@ -135,6 +156,59 @@ export default function SettingsPage() {
           {aiSaved && (
             <p className="text-sm text-green-600 flex items-center gap-1">
               <CheckCircle className="w-4 h-4" /> AI settings saved! The chat will now use GPT-4.
+            </p>
+          )}
+        </form>
+      </div>
+
+      {/* ElevenLabs TTS */}
+      <div className="card">
+        <div className="flex items-center gap-3 mb-4">
+          <Volume2 className="w-5 h-5 text-gray-400" />
+          <h2 className="text-lg font-semibold">Voice (ElevenLabs TTS)</h2>
+          {hasEnvEleven && (
+            <span className="badge-success text-xs">Configured via env</span>
+          )}
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          ElevenLabs provides natural-sounding text-to-speech for AI chat responses.
+          {hasEnvEleven
+            ? ' A key is already configured via environment variable.'
+            : ' Add your key below to enable voice responses.'}
+        </p>
+        <form onSubmit={handleSaveEleven} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ElevenLabs API Key</label>
+            <div className="relative">
+              <input
+                type={showElevenKey ? 'text' : 'password'}
+                value={elevenKey}
+                onChange={(e) => setElevenKey(e.target.value)}
+                placeholder={hasEnvEleven ? 'Using env variable (override here)' : 'sk_...'}
+                className="input-field pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowElevenKey(!showElevenKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showElevenKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Get your API key from{' '}
+              <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">
+                elevenlabs.io/app/settings/api-keys
+              </a>
+            </p>
+          </div>
+          <button type="submit" className="btn-primary">
+            <Save className="w-4 h-4 mr-2" />
+            Save Voice Settings
+          </button>
+          {elevenSaved && (
+            <p className="text-sm text-green-600 flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" /> Voice settings saved! AI responses will now be spoken aloud.
             </p>
           )}
         </form>

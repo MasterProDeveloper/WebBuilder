@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Plus, Loader2, Bot, User, MessageSquare } from 'lucide-react';
+import { Send, Plus, Loader2, Bot, User, MessageSquare, Volume2, VolumeX } from 'lucide-react';
 import { aiApi } from '../lib/api';
 import { getOpenAIKey } from '../lib/localBackend';
+import { speak, hasElevenLabsKey } from '../lib/elevenlabs';
 
 interface Message {
   id: string;
@@ -21,10 +22,12 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasApiKey = !!getOpenAIKey();
+  const hasTTS = hasElevenLabsKey();
 
   useEffect(() => {
     aiApi.conversations().then(({ data }) => setConversations(data)).catch(() => {});
@@ -56,14 +59,21 @@ export default function ChatPage() {
 
       if (!conversationId) {
         setConversationId(data.conversationId);
-        // Refresh conversation list
         aiApi.conversations().then(({ data: convs }) => setConversations(convs)).catch(() => {});
       }
 
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now().toString(), role: 'assistant', content: data.message },
-      ]);
+      const assistantMsg: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: data.message,
+      };
+
+      setMessages((prev) => [...prev, assistantMsg]);
+
+      // Auto-speak if TTS is available
+      if (hasTTS && data.message.length < 500) {
+        handleSpeak(assistantMsg.id, data.message);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -74,6 +84,16 @@ export default function ChatPage() {
     }
   };
 
+  const handleSpeak = async (msgId: string, text: string) => {
+    if (isSpeaking === msgId) {
+      setIsSpeaking(null);
+      return;
+    }
+    setIsSpeaking(msgId);
+    await speak(text);
+    setIsSpeaking(null);
+  };
+
   const startNewConversation = () => {
     setMessages([]);
     setConversationId(null);
@@ -82,11 +102,15 @@ export default function ChatPage() {
   const loadConversation = async (id: string) => {
     try {
       const { data } = await aiApi.messages(id);
-      setMessages(data.map((m: { id: string; role: 'user' | 'assistant'; content: string }) => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-      })));
+      setMessages(
+        data
+          .filter((m: { role: string }) => m.role !== 'system')
+          .map((m: { id: string; role: 'user' | 'assistant'; content: string }) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+          }))
+      );
       setConversationId(id);
     } catch {
       // ignore
@@ -125,10 +149,10 @@ export default function ChatPage() {
 
       {/* Chat area */}
       <div className="flex-1 flex flex-col bg-white rounded-r-xl">
-        {/* API key notice */}
+        {/* Status bar */}
         {!hasApiKey && (
           <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 text-sm text-amber-700 flex items-center justify-between">
-            <span>No OpenAI API key configured. AI responses are limited. Add your key in Settings.</span>
+            <span>No OpenAI API key configured. Add your key in Settings or set VITE_OPENAI_API_KEY env variable.</span>
             <a href="/settings" className="font-medium underline ml-2">Go to Settings</a>
           </div>
         )}
@@ -139,11 +163,13 @@ export default function ChatPage() {
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
               <Bot className="w-16 h-16 mb-4 opacity-30" />
               <h3 className="text-lg font-medium text-gray-600">SiteCloud AI</h3>
-              <p className="text-sm mt-1">Ask me anything. I&apos;m here to help.</p>
-              {!hasApiKey && (
-                <p className="text-xs mt-3 text-amber-600 max-w-sm text-center">
-                  Add your OpenAI API key in Settings to enable full GPT-4 powered responses.
-                </p>
+              <p className="text-sm mt-1">
+                {hasApiKey
+                  ? 'Ask me anything. I\'m powered by GPT-4.'
+                  : 'Configure your OpenAI API key in Settings to enable GPT-4.'}
+              </p>
+              {hasTTS && (
+                <p className="text-xs mt-2 text-primary-500">Voice responses enabled via ElevenLabs</p>
               )}
             </div>
           ) : (
@@ -157,14 +183,29 @@ export default function ChatPage() {
                     <Bot className="w-4 h-4 text-primary-600" />
                   </div>
                 )}
-                <div
-                  className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.role === 'user'
-                      ? 'bg-primary-600 text-white rounded-br-md'
-                      : 'bg-gray-100 text-gray-800 rounded-bl-md'
-                  }`}
-                >
-                  {msg.content}
+                <div className="flex flex-col gap-1">
+                  <div
+                    className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                      msg.role === 'user'
+                        ? 'bg-primary-600 text-white rounded-br-md'
+                        : 'bg-gray-100 text-gray-800 rounded-bl-md'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                  {msg.role === 'assistant' && hasTTS && (
+                    <button
+                      onClick={() => handleSpeak(msg.id, msg.content)}
+                      className="self-start ml-1 p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                      title={isSpeaking === msg.id ? 'Stop speaking' : 'Read aloud'}
+                    >
+                      {isSpeaking === msg.id ? (
+                        <VolumeX className="w-3.5 h-3.5" />
+                      ) : (
+                        <Volume2 className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  )}
                 </div>
                 {msg.role === 'user' && (
                   <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">

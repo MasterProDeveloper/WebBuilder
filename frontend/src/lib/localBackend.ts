@@ -727,7 +727,7 @@ export function localGetAuditLogs() {
 // ---- OpenAI key management ----
 
 export function getOpenAIKey(): string {
-  return localStorage.getItem(KEYS.openaiKey) || '';
+  return localStorage.getItem(KEYS.openaiKey) || import.meta.env.VITE_OPENAI_API_KEY || '';
 }
 
 export function setOpenAIKey(key: string): void {
