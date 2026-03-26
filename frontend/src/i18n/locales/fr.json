@@ -1,37 +1,77 @@
 {
   "app": {
-    "name": "Lovable Bolt",
-    "tagline": "Plateforme IA pour des taches complexes"
+    "name": "SiteCloud",
+    "tagline": "Plateforme alimentée par l'IA pour les tâches complexes"
   },
   "nav": {
-    "dashboard": "Tableau de Bord",
+    "dashboard": "Tableau de bord",
     "chat": "Chat IA",
-    "tasks": "Taches",
-    "analytics": "Analytiques",
+    "tasks": "Tâches",
+    "analytics": "Analytique",
     "notifications": "Notifications",
-    "settings": "Parametres",
+    "settings": "Paramètres",
     "admin": "Panneau Admin",
-    "logout": "Deconnexion"
+    "logout": "Déconnexion"
   },
   "auth": {
-    "login": "Connexion",
-    "register": "Inscription",
-    "email": "Email",
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "email": "E-mail",
     "password": "Mot de passe",
-    "firstName": "Prenom",
+    "firstName": "Prénom",
     "lastName": "Nom",
-    "forgotPassword": "Mot de passe oublie?",
-    "noAccount": "Pas de compte?",
-    "hasAccount": "Deja un compte?"
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue, {{name}}",
+    "totalTasks": "Total des Tâches",
+    "completedTasks": "Terminées",
+    "activeUsers": "Utilisateurs Actifs",
+    "aiConversations": "Conversations IA",
+    "recentActivity": "Activité Récente",
+    "quickActions": "Actions Rapides",
+    "performance": "Performance"
+  },
+  "chat": {
+    "placeholder": "Tapez votre message...",
+    "send": "Envoyer",
+    "newConversation": "Nouvelle Conversation",
+    "history": "Historique des Conversations",
+    "thinking": "Réflexion..."
+  },
+  "tasks": {
+    "create": "Créer une Tâche",
+    "title": "Titre",
+    "description": "Description",
+    "status": "Statut",
+    "priority": "Priorité",
+    "dueDate": "Date Limite",
+    "pending": "En attente",
+    "inProgress": "En cours",
+    "completed": "Terminée",
+    "failed": "Échouée",
+    "low": "Basse",
+    "medium": "Moyenne",
+    "high": "Haute",
+    "critical": "Critique"
+  },
+  "gamification": {
+    "points": "Points",
+    "level": "Niveau",
+    "streak": "Jours Consécutifs",
+    "achievements": "Réalisations",
+    "leaderboard": "Classement"
   },
   "common": {
     "search": "Rechercher...",
-    "save": "Enregistrer",
+    "save": "Sauvegarder",
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
     "loading": "Chargement...",
-    "noResults": "Aucun resultat",
+    "noResults": "Aucun résultat",
     "confirm": "Confirmer",
     "back": "Retour"
   }

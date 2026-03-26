@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Zap, Loader2 } from 'lucide-react';
+import { Cloud, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function RegisterPage() {
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Zap className="w-10 h-10 text-primary-600 mx-auto mb-4" />
+          <Cloud className="w-10 h-10 text-primary-600 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900">{t('auth.register')}</h1>
         </div>
 

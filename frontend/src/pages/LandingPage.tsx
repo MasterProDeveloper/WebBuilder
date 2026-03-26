@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Zap, Brain, Shield, BarChart3, MessageSquare, Globe } from 'lucide-react';
+import { Cloud, Brain, Shield, BarChart3, MessageSquare, Globe } from 'lucide-react';
 
 const features = [
   { icon: Brain, title: 'AI-Powered Intelligence', desc: 'GPT-4 integration for chat, recommendations, and predictive analytics.' },
-  { icon: Zap, title: 'Lightning Performance', desc: 'Optimized architecture with caching, compression, and load balancing.' },
+  { icon: Cloud, title: 'Lightning Performance', desc: 'Optimized architecture with caching, compression, and load balancing.' },
   { icon: Shield, title: 'Enterprise Security', desc: 'JWT auth, rate limiting, encryption, and DDoS protection built-in.' },
   { icon: BarChart3, title: 'Real-Time Analytics', desc: 'Interactive dashboards with live metrics and performance tracking.' },
   { icon: MessageSquare, title: 'Smart Automation', desc: 'Automated workflows, notifications, and intelligent task management.' },
@@ -19,7 +19,7 @@ export default function LandingPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-5">
         <div className="flex items-center gap-3">
-          <Zap className="w-8 h-8 text-primary-400" />
+          <Cloud className="w-8 h-8 text-primary-400" />
           <span className="text-2xl font-bold">{t('app.name')}</span>
         </div>
         <div className="flex items-center gap-4">
@@ -35,7 +35,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="max-w-5xl mx-auto text-center px-6 py-24">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-500/20 rounded-full text-primary-300 text-sm font-medium mb-8">
-          <Zap className="w-4 h-4" />
+          <Cloud className="w-4 h-4" />
           AI-Powered Platform
         </div>
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
@@ -101,7 +101,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-white/10 py-8 text-center text-sm text-gray-500">
-        <p>&copy; 2024 Lovable Bolt. Built with performance and intelligence in mind.</p>
+        <p>&copy; {new Date().getFullYear()} SiteCloud. Built with performance and intelligence in mind.</p>
       </footer>
     </div>
   );

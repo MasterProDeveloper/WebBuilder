@@ -66,7 +66,7 @@ router.post(
       const messages: aiService.ChatMessage[] = [
         {
           role: 'system',
-          content: 'You are Lovable Bolt AI, a helpful and intelligent assistant. Be concise, accurate, and friendly.',
+          content: 'You are SiteCloud AI, a helpful and intelligent assistant. Be concise, accurate, and friendly.',
         },
         ...history.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
       ];

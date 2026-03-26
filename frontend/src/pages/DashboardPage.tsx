@@ -7,12 +7,12 @@ import {
   Users,
   TrendingUp,
   Trophy,
-  Zap,
+  Cloud,
   Plus,
   ArrowRight,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { gamificationApi } from '../lib/api';
+import { gamificationApi, taskApi, analyticsApi } from '../lib/api';
 
 interface QuickStat {
   label: string;
@@ -27,16 +27,34 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const [points, setPoints] = useState({ points: 0, level: 1, streak_days: 0 });
+  const [taskStats, setTaskStats] = useState({ total: 0, completed: 0 });
+  const [chatCount, setChatCount] = useState(0);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [recentTasks, setRecentTasks] = useState<Array<{ id: string; title: string; status: string; created_at: string }>>([]);
 
   useEffect(() => {
     gamificationApi.points().then(({ data }) => setPoints(data)).catch(() => {});
+
+    taskApi.list({}).then(({ data }) => {
+      const tasks = data.tasks || [];
+      setTaskStats({
+        total: data.total || tasks.length,
+        completed: tasks.filter((t: { status: string }) => t.status === 'completed').length,
+      });
+      setRecentTasks(tasks.slice(0, 5));
+    }).catch(() => {});
+
+    analyticsApi.dashboard().then(({ data }) => {
+      setChatCount(data.totalConversations || 0);
+      setActiveUsers(data.activeUsers || 0);
+    }).catch(() => {});
   }, []);
 
   const stats: QuickStat[] = [
-    { label: t('dashboard.totalTasks'), value: '--', icon: CheckSquare, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-    { label: t('dashboard.completedTasks'), value: '--', icon: TrendingUp, color: 'text-green-600', bgColor: 'bg-green-100' },
-    { label: t('dashboard.aiConversations'), value: '--', icon: MessageSquare, color: 'text-purple-600', bgColor: 'bg-purple-100' },
-    { label: t('dashboard.activeUsers'), value: '--', icon: Users, color: 'text-orange-600', bgColor: 'bg-orange-100' },
+    { label: t('dashboard.totalTasks'), value: String(taskStats.total), icon: CheckSquare, color: 'text-blue-600', bgColor: 'bg-blue-100' },
+    { label: t('dashboard.completedTasks'), value: String(taskStats.completed), icon: TrendingUp, color: 'text-green-600', bgColor: 'bg-green-100' },
+    { label: t('dashboard.aiConversations'), value: String(chatCount), icon: MessageSquare, color: 'text-purple-600', bgColor: 'bg-purple-100' },
+    { label: t('dashboard.activeUsers'), value: String(activeUsers), icon: Users, color: 'text-orange-600', bgColor: 'bg-orange-100' },
   ];
 
   const quickActions = [
@@ -64,7 +82,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="card flex items-center gap-3 py-3 px-4">
-            <Zap className="w-5 h-5 text-orange-500" />
+            <Cloud className="w-5 h-5 text-orange-500" />
             <div>
               <p className="text-sm font-semibold">{points.streak_days} {t('gamification.streak')}</p>
             </div>
@@ -109,13 +127,33 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity placeholder */}
+      {/* Recent Tasks */}
       <div className="card">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.recentActivity')}</h2>
-        <div className="text-center py-8 text-gray-400">
-          <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Start using Lovable Bolt to see your activity here</p>
-        </div>
+        {recentTasks.length > 0 ? (
+          <div className="space-y-3">
+            {recentTasks.map((task) => (
+              <div key={task.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <div className="flex items-center gap-3">
+                  <CheckSquare className={`w-4 h-4 ${task.status === 'completed' ? 'text-green-500' : 'text-gray-400'}`} />
+                  <span className="text-sm text-gray-700">{task.title}</span>
+                </div>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  task.status === 'completed' ? 'bg-green-100 text-green-700' :
+                  task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {task.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>Start using SiteCloud to see your activity here</p>
+          </div>
+        )}
       </div>
     </div>
   );

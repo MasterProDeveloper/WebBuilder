@@ -3,25 +3,25 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: lovable-bolt-db
+    container_name: sitecloud-db
     environment:
-      POSTGRES_USER: lovable
-      POSTGRES_PASSWORD: lovable_secret
-      POSTGRES_DB: lovable_bolt
+      POSTGRES_USER: sitecloud
+      POSTGRES_PASSWORD: sitecloud_secret
+      POSTGRES_DB: sitecloud
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U lovable -d lovable_bolt']
+      test: ['CMD-SHELL', 'pg_isready -U sitecloud -d sitecloud']
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: lovable-bolt-redis
+    container_name: sitecloud-redis
     ports:
       - '6379:6379'
     volumes:
@@ -36,11 +36,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: lovable-bolt-api
+    container_name: sitecloud-api
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: postgresql://lovable:lovable_secret@postgres:5432/lovable_bolt
+      DATABASE_URL: postgresql://sitecloud:sitecloud_secret@postgres:5432/sitecloud
       REDIS_URL: redis://redis:6379
     ports:
       - '3001:3001'
@@ -55,7 +55,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: lovable-bolt-web
+    container_name: sitecloud-web
     ports:
       - '80:80'
     depends_on:

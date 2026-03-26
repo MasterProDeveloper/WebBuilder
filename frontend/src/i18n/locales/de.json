@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Lovable Bolt",
-    "tagline": "KI-gestuetzte Plattform fuer komplexe Aufgaben"
+    "name": "SiteCloud",
+    "tagline": "KI-gestützte Plattform für komplexe Aufgaben"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -21,18 +21,58 @@
     "firstName": "Vorname",
     "lastName": "Nachname",
     "forgotPassword": "Passwort vergessen?",
-    "noAccount": "Kein Konto?",
+    "noAccount": "Noch kein Konto?",
     "hasAccount": "Bereits ein Konto?"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück, {{name}}",
+    "totalTasks": "Gesamte Aufgaben",
+    "completedTasks": "Abgeschlossen",
+    "activeUsers": "Aktive Benutzer",
+    "aiConversations": "KI-Gespräche",
+    "recentActivity": "Letzte Aktivität",
+    "quickActions": "Schnellaktionen",
+    "performance": "Leistung"
+  },
+  "chat": {
+    "placeholder": "Nachricht eingeben...",
+    "send": "Senden",
+    "newConversation": "Neues Gespräch",
+    "history": "Gesprächsverlauf",
+    "thinking": "Denke nach..."
+  },
+  "tasks": {
+    "create": "Aufgabe erstellen",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "status": "Status",
+    "priority": "Priorität",
+    "dueDate": "Fälligkeitsdatum",
+    "pending": "Ausstehend",
+    "inProgress": "In Bearbeitung",
+    "completed": "Abgeschlossen",
+    "failed": "Fehlgeschlagen",
+    "low": "Niedrig",
+    "medium": "Mittel",
+    "high": "Hoch",
+    "critical": "Kritisch"
+  },
+  "gamification": {
+    "points": "Punkte",
+    "level": "Level",
+    "streak": "Tage-Streak",
+    "achievements": "Erfolge",
+    "leaderboard": "Bestenliste"
   },
   "common": {
     "search": "Suchen...",
     "save": "Speichern",
     "cancel": "Abbrechen",
-    "delete": "Loeschen",
+    "delete": "Löschen",
     "edit": "Bearbeiten",
     "loading": "Laden...",
     "noResults": "Keine Ergebnisse",
-    "confirm": "Bestaetigen",
-    "back": "Zurueck"
+    "confirm": "Bestätigen",
+    "back": "Zurück"
   }
 }

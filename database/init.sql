@@ -1,4 +1,4 @@
--- Lovable Bolt Database Schema
+-- SiteCloud Database Schema
 -- PostgreSQL 16+
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

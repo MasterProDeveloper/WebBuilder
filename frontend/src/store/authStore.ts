@@ -36,11 +36,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('accessToken', data.tokens.accessToken);
       localStorage.setItem('refreshToken', data.tokens.refreshToken);
       set({ user: data.user, isAuthenticated: true, isLoading: false });
-    } catch (err: any) {
-      set({
-        error: err.response?.data?.error || 'Login failed',
-        isLoading: false,
-      });
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } }).response?.data?.error ||
+        (err as Error).message ||
+        'Login failed';
+      set({ error: message, isLoading: false });
       throw err;
     }
   },
@@ -52,11 +53,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('accessToken', data.tokens.accessToken);
       localStorage.setItem('refreshToken', data.tokens.refreshToken);
       set({ user: data.user, isAuthenticated: true, isLoading: false });
-    } catch (err: any) {
-      set({
-        error: err.response?.data?.error || 'Registration failed',
-        isLoading: false,
-      });
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } }).response?.data?.error ||
+        (err as Error).message ||
+        'Registration failed';
+      set({ error: message, isLoading: false });
       throw err;
     }
   },

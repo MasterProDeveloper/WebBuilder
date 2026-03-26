@@ -60,10 +60,11 @@ export async function chatCompletion(
 export async function generateRecommendations(
   input: RecommendationInput
 ): Promise<Array<{ title: string; description: string; score: number }>> {
-  const systemPrompt = `You are a recommendation engine for the Lovable Bolt platform. 
+  const systemPrompt = `You are a recommendation engine for the SiteCloud platform. 
 Based on the user's activity and context, generate personalized recommendations.
 Return a JSON array of objects with title, description, and score (0-1) fields.
 Limit to ${input.limit || 5} recommendations.`;
+  // Updated for SiteCloud platform
 
   const response = await chatCompletion([
     { role: 'system', content: systemPrompt },

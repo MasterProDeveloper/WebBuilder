@@ -1,7 +1,7 @@
 {
-  "name": "lovable-bolt-backend",
+  "name": "sitecloud-backend",
   "version": "1.0.0",
-  "description": "Lovable Bolt API server",
+  "description": "SiteCloud API server",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

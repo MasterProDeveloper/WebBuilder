@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 text-sm">No events recorded yet</p>
+            <p className="text-gray-400 text-sm">No events recorded yet. Start using the platform to generate analytics data.</p>
           )}
         </div>
       </div>
