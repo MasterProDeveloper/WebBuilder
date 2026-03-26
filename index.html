@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lovable Bolt - AI-powered platform for handling heavy and complex tasks with seamless efficiency">
+  <meta name="theme-color" content="#4c6ef5">
+  <title>Lovable Bolt - AI-Powered Platform</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234c6ef5' stroke-width='2'%3E%3Cpolygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { 50:'#f0f4ff',100:'#dbe4ff',200:'#bac8ff',300:'#91a7ff',400:'#748ffc',500:'#5c7cfa',600:'#4c6ef5',700:'#4263eb',800:'#3b5bdb',900:'#364fc7' },
+            accent: { 50:'#fff0f6',100:'#ffdeeb',200:'#fcc2d7',300:'#faa2c1',400:'#f783ac',500:'#f06595',600:'#e64980',700:'#d6336c',800:'#c2255c',900:'#a61e4d' },
+          },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    ::selection { background: #dbe4ff; color: #364fc7; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    .slide-up { animation: slideUp 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+    .chat-bubble-user { border-radius: 1rem 1rem 0.25rem 1rem; }
+    .chat-bubble-ai { border-radius: 1rem 1rem 1rem 0.25rem; }
+    [dir="rtl"] .sidebar { right: 0; left: auto; }
+    [dir="rtl"] .main-content { margin-right: 16rem; margin-left: 0; }
+    [dir="rtl"] .main-content.collapsed { margin-right: 4rem; margin-left: 0; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased min-h-screen">
+  <div id="app"></div>
+
+  <script>
+  // =====================================================================
+  // Lovable Bolt - Complete Standalone Application
+  // =====================================================================
+
+  // --- State Management ---
+  const Store = {
+    _state: {
+      currentPage: 'landing',
+      isAuthenticated: false,
+      user: null,
+      sidebarOpen: true,
+      language: 'en',
+      tasks: [],
+      conversations: [],
+      currentConversation: null,
+      chatMessages: [],
+      notifications: [],
+      points: { points: 0, level: 1, streak_days: 0 },
+      achievements: [],
+      users: [],
+      searchQuery: '',
+    },
+    _listeners: [],
+    
+    get(key) { return this._state[key]; },
+    set(updates) {
+      Object.assign(this._state, updates);
+      this._listeners.forEach(fn => fn(this._state));
+    },
+    subscribe(fn) { this._listeners.push(fn); },
+    
+    init() {
+      const saved = localStorage.getItem('lovable_bolt_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          Object.assign(this._state, parsed);
+          if (this._state.isAuthenticated && this._state.user) {
+            this._state.currentPage = 'dashboard';
+          }
+        } catch(e) {}
+      }
+    },
+    
+    save() {
+      const toSave = { ...this._state };
+      delete toSave._listeners;
+      localStorage.setItem('lovable_bolt_state', JSON.stringify(toSave));
+    }
+  };
+
+  // --- i18n ---
+  const translations = {
+    en: {
+      'app.name': 'Lovable Bolt',
+      'app.tagline': 'AI-Powered Platform for Complex Tasks',
+      'nav.dashboard': 'Dashboard', 'nav.chat': 'AI Chat', 'nav.tasks': 'Tasks',
+      'nav.analytics': 'Analytics', 'nav.notifications': 'Notifications',
+      'nav.settings': 'Settings', 'nav.admin': 'Admin Panel', 'nav.logout': 'Log Out',
+      'auth.login': 'Log In', 'auth.register': 'Sign Up', 'auth.email': 'Email',
+      'auth.password': 'Password', 'auth.firstName': 'First Name', 'auth.lastName': 'Last Name',
+      'auth.noAccount': "Don't have an account?", 'auth.hasAccount': 'Already have an account?',
+      'dashboard.welcome': 'Welcome back', 'dashboard.totalTasks': 'Total Tasks',
+      'dashboard.completed': 'Completed', 'dashboard.aiChats': 'AI Conversations',
+      'dashboard.quickActions': 'Quick Actions', 'dashboard.recentActivity': 'Recent Activity',
+      'chat.placeholder': 'Type your message...', 'chat.send': 'Send',
+      'chat.new': 'New Conversation', 'chat.thinking': 'Thinking...',
+      'tasks.create': 'Create Task', 'tasks.title': 'Title', 'tasks.description': 'Description',
+      'tasks.priority': 'Priority', 'tasks.status': 'Status',
+      'tasks.pending': 'Pending', 'tasks.inProgress': 'In Progress',
+      'tasks.completed': 'Completed', 'tasks.failed': 'Failed',
+      'tasks.low': 'Low', 'tasks.medium': 'Medium', 'tasks.high': 'High', 'tasks.critical': 'Critical',
+      'gamification.points': 'Points', 'gamification.level': 'Level',
+      'gamification.streak': 'Day Streak', 'gamification.achievements': 'Achievements',
+      'gamification.leaderboard': 'Leaderboard',
+      'common.search': 'Search...', 'common.save': 'Save', 'common.cancel': 'Cancel',
+      'common.delete': 'Delete', 'common.edit': 'Edit', 'common.loading': 'Loading...',
+      'common.noResults': 'No results found', 'common.back': 'Back',
+      'settings.profile': 'Profile', 'settings.language': 'Language', 'settings.security': 'Security',
+    },
+    es: {
+      'app.name': 'Lovable Bolt', 'app.tagline': 'Plataforma IA para tareas complejas',
+      'nav.dashboard': 'Panel', 'nav.chat': 'Chat IA', 'nav.tasks': 'Tareas',
+      'nav.analytics': 'Analiticas', 'nav.notifications': 'Notificaciones',
+      'nav.settings': 'Configuracion', 'nav.admin': 'Admin', 'nav.logout': 'Salir',
+      'auth.login': 'Iniciar Sesion', 'auth.register': 'Registrarse', 'auth.email': 'Correo',
+      'auth.password': 'Contrasena', 'auth.firstName': 'Nombre', 'auth.lastName': 'Apellido',
+      'auth.noAccount': 'No tienes cuenta?', 'auth.hasAccount': 'Ya tienes cuenta?',
+      'dashboard.welcome': 'Bienvenido', 'dashboard.totalTasks': 'Total Tareas',
+      'dashboard.completed': 'Completadas', 'dashboard.aiChats': 'Conversaciones IA',
+      'dashboard.quickActions': 'Acciones Rapidas', 'dashboard.recentActivity': 'Actividad Reciente',
+      'chat.placeholder': 'Escribe tu mensaje...', 'chat.send': 'Enviar',
+      'chat.new': 'Nueva Conversacion', 'chat.thinking': 'Pensando...',
+      'tasks.create': 'Crear Tarea', 'tasks.title': 'Titulo', 'tasks.description': 'Descripcion',
+      'common.search': 'Buscar...', 'common.save': 'Guardar', 'common.cancel': 'Cancelar',
+      'common.noResults': 'Sin resultados',
+      'settings.profile': 'Perfil', 'settings.language': 'Idioma', 'settings.security': 'Seguridad',
+      'tasks.pending': 'Pendiente', 'tasks.inProgress': 'En Progreso', 'tasks.completed': 'Completada',
+      'tasks.low': 'Baja', 'tasks.medium': 'Media', 'tasks.high': 'Alta', 'tasks.critical': 'Critica',
+      'gamification.points': 'Puntos', 'gamification.level': 'Nivel', 'gamification.streak': 'Dias',
+      'gamification.achievements': 'Logros', 'gamification.leaderboard': 'Clasificacion',
+    },
+    fr: {
+      'app.name': 'Lovable Bolt', 'app.tagline': 'Plateforme IA pour taches complexes',
+      'nav.dashboard': 'Tableau de Bord', 'nav.chat': 'Chat IA', 'nav.tasks': 'Taches',
+      'nav.analytics': 'Analytiques', 'nav.settings': 'Parametres', 'nav.logout': 'Deconnexion',
+      'auth.login': 'Connexion', 'auth.register': 'Inscription', 'auth.email': 'Email',
+      'auth.password': 'Mot de passe', 'auth.firstName': 'Prenom', 'auth.lastName': 'Nom',
+      'common.search': 'Rechercher...', 'common.save': 'Enregistrer', 'common.cancel': 'Annuler',
+      'settings.profile': 'Profil', 'settings.language': 'Langue', 'settings.security': 'Securite',
+      'dashboard.welcome': 'Bienvenue', 'tasks.create': 'Creer Tache',
+      'gamification.points': 'Points', 'gamification.level': 'Niveau',
+    },
+    de: {
+      'app.name': 'Lovable Bolt', 'app.tagline': 'KI-Plattform fuer komplexe Aufgaben',
+      'nav.dashboard': 'Dashboard', 'nav.chat': 'KI-Chat', 'nav.tasks': 'Aufgaben',
+      'nav.analytics': 'Analytik', 'nav.settings': 'Einstellungen', 'nav.logout': 'Abmelden',
+      'auth.login': 'Anmelden', 'auth.register': 'Registrieren',
+      'common.search': 'Suchen...', 'common.save': 'Speichern', 'common.cancel': 'Abbrechen',
+      'settings.profile': 'Profil', 'settings.language': 'Sprache',
+      'dashboard.welcome': 'Willkommen', 'tasks.create': 'Aufgabe erstellen',
+    },
+    ar: {
+      'app.name': 'Lovable Bolt', 'app.tagline': 'منصة ذكاء اصطناعي للمهام المعقدة',
+      'nav.dashboard': 'لوحة القيادة', 'nav.chat': 'محادثة ذكية', 'nav.tasks': 'المهام',
+      'nav.analytics': 'التحليلات', 'nav.settings': 'الإعدادات', 'nav.logout': 'خروج',
+      'auth.login': 'دخول', 'auth.register': 'تسجيل', 'auth.email': 'البريد',
+      'auth.password': 'كلمة المرور', 'auth.firstName': 'الاسم', 'auth.lastName': 'اللقب',
+      'common.search': 'بحث...', 'common.save': 'حفظ', 'common.cancel': 'إلغاء',
+      'settings.profile': 'الملف الشخصي', 'settings.language': 'اللغة',
+      'dashboard.welcome': 'مرحبا', 'tasks.create': 'إنشاء مهمة',
+    }
+  };
+
+  function t(key) {
+    const lang = Store.get('language') || 'en';
+    return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
+  }
+
+  const languages = [
+    { code: 'en', name: 'English', dir: 'ltr' },
+    { code: 'es', name: 'Espanol', dir: 'ltr' },
+    { code: 'fr', name: 'Francais', dir: 'ltr' },
+    { code: 'de', name: 'Deutsch', dir: 'ltr' },
+    { code: 'ar', name: 'العربية', dir: 'rtl' },
+  ];
+
+  // --- SVG Icons ---
+  const icons = {
+    bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>',
+    chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>',
+    tasks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    analytics: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>',
+    settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+    admin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>',
+    send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+    globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>',
+    logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>',
+    trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+    trending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+    bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>',
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
+    chevronL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+    chevronR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+    brain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>',
+    server: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>',
+    save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>',
+    activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>',
+    loader: '<svg class="animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>',
+  };
+
+  function icon(name, cls='w-5 h-5') {
+    return `<span class="inline-block ${cls}">${icons[name] || ''}</span>`;
+  }
+
+  // --- AI Response Generator ---
+  const aiResponses = [
+    "I've analyzed your request. Here's what I found:\n\n**Key Insights:**\n- The data suggests a positive trend in your workflow efficiency\n- I recommend prioritizing tasks with high impact scores\n- Consider automating repetitive processes\n\nWould you like me to elaborate on any of these points?",
+    "That's a great question! Let me break it down:\n\n1. **Performance Optimization** - Consider implementing caching strategies for frequently accessed data\n2. **Scalability** - Your current architecture can handle 10x growth with minor adjustments\n3. **Security** - All endpoints are protected with JWT authentication\n\nI can provide more detailed recommendations if needed.",
+    "Based on my analysis of your workflow patterns:\n\n- **Productivity Score**: 87/100\n- **Completion Rate**: 94%\n- **Average Task Duration**: 2.3 hours\n\nYour team is performing above average. The main area for improvement is reducing context switching between tasks.",
+    "Here's my recommendation:\n\n**Immediate Actions:**\n- Focus on high-priority tasks first\n- Set up automated notifications for deadlines\n- Review analytics dashboard weekly\n\n**Long-term Strategy:**\n- Implement AI-driven task assignment\n- Build predictive models for resource planning\n- Expand integration capabilities",
+    "I've processed your request using advanced analytics:\n\n**Trend Analysis**: Upward trajectory with 15% month-over-month growth\n**Anomaly Detection**: No significant anomalies detected in the past 30 days\n**Forecast**: Expected 23% improvement in Q4 based on current patterns\n\nThis data is based on real-time processing of your platform metrics.",
+    "Let me help you with that! Here are some approaches:\n\n**Option A**: Automate the entire workflow using our built-in automation engine. This reduces manual effort by ~60%.\n\n**Option B**: Implement a hybrid approach where AI handles routine tasks while you focus on strategic decisions.\n\n**Option C**: Use predictive analytics to anticipate needs before they arise.\n\nWhich approach interests you most?",
+  ];
+
+  function getAIResponse(userMsg) {
+    const lower = userMsg.toLowerCase();
+    if (lower.includes('hello') || lower.includes('hi')) {
+      return "Hello! I'm Lovable Bolt AI, your intelligent assistant. I can help you with:\n\n- **Task Management** - Create, organize, and optimize your workflow\n- **Data Analysis** - Get insights from your metrics\n- **Recommendations** - AI-powered suggestions for improvement\n- **Predictions** - Forecast trends and outcomes\n\nHow can I assist you today?";
+    }
+    if (lower.includes('help')) {
+      return "I'm here to help! Here's what I can do:\n\n1. **Analyze data** - Ask me about your metrics or trends\n2. **Manage tasks** - I can help organize your workflow\n3. **Generate reports** - Get summaries and insights\n4. **Make predictions** - Forecast future outcomes\n5. **Optimize processes** - Suggestions for improvement\n\nJust ask me anything!";
+    }
+    return aiResponses[Math.floor(Math.random() * aiResponses.length)];
+  }
+
+  // --- Render Engine ---
+  function render() {
+    const page = Store.get('currentPage');
+    const app = document.getElementById('app');
+    
+    if (!Store.get('isAuthenticated') && !['landing', 'login', 'register'].includes(page)) {
+      Store.set({ currentPage: 'landing' });
+      render();
+      return;
+    }
+
+    let html = '';
+    switch(page) {
+      case 'landing': html = renderLanding(); break;
+      case 'login': html = renderLogin(); break;
+      case 'register': html = renderRegister(); break;
+      case 'dashboard': html = renderApp(renderDashboard()); break;
+      case 'chat': html = renderApp(renderChat()); break;
+      case 'tasks': html = renderApp(renderTasks()); break;
+      case 'analytics': html = renderApp(renderAnalytics()); break;
+      case 'settings': html = renderApp(renderSettings()); break;
+      case 'admin': html = renderApp(renderAdmin()); break;
+      case 'notifications': html = renderApp(renderNotifications()); break;
+      default: html = renderLanding();
+    }
+    app.innerHTML = html;
+    Store.save();
+    attachEvents();
+  }
+
+  // --- Landing Page ---
+  function renderLanding() {
+    const features = [
+      { icon: 'brain', title: 'AI-Powered Intelligence', desc: 'GPT integration for chat, recommendations, and predictive analytics with real-time processing.' },
+      { icon: 'bolt', title: 'Lightning Performance', desc: 'Optimized architecture with caching, compression, and load balancing for zero-lag experience.' },
+      { icon: 'admin', title: 'Enterprise Security', desc: 'JWT auth, rate limiting, encryption, and DDoS protection built into every layer.' },
+      { icon: 'analytics', title: 'Real-Time Analytics', desc: 'Interactive dashboards with live metrics, trend analysis, and performance tracking.' },
+      { icon: 'chat', title: 'Smart Automation', desc: 'Automated workflows, intelligent notifications, and AI-driven task management.' },
+      { icon: 'globe', title: 'Multi-Language', desc: 'Full i18n support with 5 languages including RTL layout for Arabic.' },
+    ];
+    return `
+    <div class="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 text-white">
+      <header class="flex items-center justify-between px-6 md:px-12 py-5">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 text-primary-400">${icons.bolt}</span>
+          <span class="text-2xl font-bold">${t('app.name')}</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <button onclick="navigate('login')" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">${t('auth.login')}</button>
+          <button onclick="navigate('register')" class="px-5 py-2.5 text-sm font-medium bg-primary-600 hover:bg-primary-500 rounded-lg transition-colors">${t('auth.register')}</button>
+        </div>
+      </header>
+
+      <section class="max-w-5xl mx-auto text-center px-6 py-16 md:py-24">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-500/20 rounded-full text-primary-300 text-sm font-medium mb-8">
+          <span class="w-4 h-4">${icons.bolt}</span> AI-Powered Platform
+        </div>
+        <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6">
+          Handle Complex Tasks
+          <span class="bg-gradient-to-r from-primary-400 to-pink-400 bg-clip-text text-transparent"> With Ease</span>
+        </h1>
+        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10">${t('app.tagline')}. Powered by cutting-edge AI, built for performance, designed for scale.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button onclick="navigate('register')" class="px-8 py-3.5 bg-primary-600 hover:bg-primary-500 rounded-lg font-semibold text-lg transition-all hover:shadow-lg hover:shadow-primary-500/25 w-full sm:w-auto">Get Started Free</button>
+          <a href="#features" class="px-8 py-3.5 border border-gray-600 hover:border-gray-400 rounded-lg font-semibold text-lg transition-colors w-full sm:w-auto text-center">Learn More</a>
+        </div>
+      </section>
+
+      <section id="features" class="max-w-6xl mx-auto px-6 pb-20">
+        <h2 class="text-3xl font-bold text-center mb-12">Everything You Need</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          ${features.map(f => `
+            <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
+              <div class="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 text-primary-400">${icon(f.icon, 'w-6 h-6')}</div>
+              <h3 class="text-lg font-semibold mb-2">${f.title}</h3>
+              <p class="text-gray-400 text-sm leading-relaxed">${f.desc}</p>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="border-t border-white/10 py-16">
+        <div class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center px-6">
+          ${[{v:'99.9%',l:'Uptime SLA'},{v:'<50ms',l:'API Latency'},{v:'5',l:'Languages'},{v:'GPT-4',l:'AI Model'}].map(s => `
+            <div><div class="text-3xl font-bold text-primary-400">${s.v}</div><div class="text-sm text-gray-400 mt-1">${s.l}</div></div>
+          `).join('')}
+        </div>
+      </section>
+
+      <footer class="border-t border-white/10 py-8 text-center text-sm text-gray-500 px-6">
+        <p>&copy; 2024 Lovable Bolt. Built with performance and intelligence in mind.</p>
+      </footer>
+    </div>`;
+  }
+
+  // --- Auth Pages ---
+  function renderLogin() {
+    return `
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <div class="flex items-center justify-center mb-4"><span class="w-10 h-10 text-primary-600">${icons.bolt}</span></div>
+          <h1 class="text-2xl font-bold text-gray-900">${t('auth.login')}</h1>
+          <p class="text-gray-500 mt-1">${t('app.tagline')}</p>
+        </div>
+        <div id="login-error" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4"></div>
+        <form id="login-form" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.email')}</label>
+            <input type="email" id="login-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition" required placeholder="you@example.com">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.password')}</label>
+            <input type="password" id="login-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition" required minlength="6" placeholder="Min 6 characters">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">${t('auth.login')}</button>
+        </form>
+        <p class="text-center text-sm text-gray-500 mt-6">${t('auth.noAccount')} <button onclick="navigate('register')" class="text-primary-600 font-medium hover:text-primary-700">${t('auth.register')}</button></p>
+        <p class="text-center text-xs text-gray-400 mt-3">Demo: use any email/password to get started</p>
+      </div>
+    </div>`;
+  }
+
+  function renderRegister() {
+    return `
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <span class="w-10 h-10 text-primary-600 mx-auto block">${icons.bolt}</span>
+          <h1 class="text-2xl font-bold text-gray-900 mt-4">${t('auth.register')}</h1>
+        </div>
+        <form id="register-form" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.firstName')}</label><input type="text" id="reg-first" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.lastName')}</label><input type="text" id="reg-last" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required></div>
+          </div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.email')}</label><input type="email" id="reg-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.password')}</label><input type="password" id="reg-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" required minlength="6"></div>
+          <button type="submit" class="w-full py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">${t('auth.register')}</button>
+        </form>
+        <p class="text-center text-sm text-gray-500 mt-6">${t('auth.hasAccount')} <button onclick="navigate('login')" class="text-primary-600 font-medium hover:text-primary-700">${t('auth.login')}</button></p>
+      </div>
+    </div>`;
+  }
+
+  // --- App Shell ---
+  function renderApp(content) {
+    const open = Store.get('sidebarOpen');
+    const user = Store.get('user') || {};
+    const unread = (Store.get('notifications') || []).filter(n => !n.read).length;
+    const navItems = [
+      { page: 'dashboard', icon: 'dashboard', label: 'nav.dashboard' },
+      { page: 'chat', icon: 'chat', label: 'nav.chat' },
+      { page: 'tasks', icon: 'tasks', label: 'nav.tasks' },
+      { page: 'analytics', icon: 'analytics', label: 'nav.analytics' },
+      { page: 'notifications', icon: 'bell', label: 'nav.notifications' },
+      { page: 'settings', icon: 'settings', label: 'nav.settings' },
+    ];
+    if (user.role === 'admin') navItems.push({ page: 'admin', icon: 'admin', label: 'nav.admin' });
+
+    return `
+    <div class="flex h-screen overflow-hidden bg-gray-50">
+      <!-- Sidebar -->
+      <aside class="sidebar fixed inset-y-0 left-0 z-30 flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ${open ? 'w-64' : 'w-16'}">
+        <div class="flex items-center h-16 px-4 border-b border-gray-100 gap-3">
+          <span class="w-8 h-8 text-primary-600 flex-shrink-0">${icons.bolt}</span>
+          ${open ? `<span class="text-xl font-bold text-gray-900 fade-in">${t('app.name')}</span>` : ''}
+        </div>
+        <nav class="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+          ${navItems.map(n => {
+            const active = Store.get('currentPage') === n.page;
+            return `<button onclick="navigate('${n.page}')" class="flex items-center w-full px-3 py-2.5 rounded-lg transition-colors ${active ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
+              <span class="w-5 h-5 flex-shrink-0">${icons[n.icon]}</span>
+              ${open ? `<span class="ml-3 text-sm font-medium fade-in">${t(n.label)}</span>` : ''}
+              ${n.page === 'notifications' && unread > 0 && open ? `<span class="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">${unread}</span>` : ''}
+            </button>`;
+          }).join('')}
+        </nav>
+        <button onclick="toggleSidebar()" class="flex items-center justify-center h-12 border-t border-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="w-5 h-5">${open ? icons.chevronL : icons.chevronR}</span>
+        </button>
+      </aside>
+
+      <!-- Main -->
+      <div class="main-content flex flex-col flex-1 transition-all duration-300 ${open ? 'ml-64' : 'ml-16'} ${!open ? 'collapsed' : ''}">
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+          <div class="flex items-center flex-1 max-w-lg">
+            <div class="relative w-full">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400">${icons.search}</span>
+              <input type="text" id="global-search" placeholder="${t('common.search')}" class="w-full pl-10 pr-4 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition">
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <button onclick="toggleDropdown('lang-menu')" class="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"><span class="w-5 h-5">${icons.globe}</span></button>
+              <div id="lang-menu" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                ${languages.map(l => `<button onclick="changeLanguage('${l.code}')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${Store.get('language')===l.code?'text-primary-600 font-medium':'text-gray-700'}">${l.name}</button>`).join('')}
+              </div>
+            </div>
+            <button onclick="navigate('notifications')" class="relative p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+              <span class="w-5 h-5">${icons.bell}</span>
+              ${unread > 0 ? `<span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">${unread > 9 ? '9+' : unread}</span>` : ''}
+            </button>
+            <div class="relative">
+              <button onclick="toggleDropdown('user-menu')" class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">${(user.firstName||'U')[0]}${(user.lastName||'')[0]}</div>
+              </button>
+              <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <div class="px-4 py-2 border-b border-gray-100"><p class="text-sm font-medium text-gray-900">${user.firstName} ${user.lastName}</p><p class="text-xs text-gray-500">${user.email}</p></div>
+                <button onclick="navigate('settings')" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><span class="w-4 h-4">${icons.user}</span> Profile</button>
+                <button onclick="doLogout()" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"><span class="w-4 h-4">${icons.logout}</span> ${t('nav.logout')}</button>
+              </div>
+            </div>
+          </div>
+        </header>
+        <main class="flex-1 overflow-y-auto p-6">${content}</main>
+      </div>
+    </div>`;
+  }
+
+  // --- Dashboard ---
+  function renderDashboard() {
+    const user = Store.get('user') || {};
+    const tasks = Store.get('tasks') || [];
+    const convos = Store.get('conversations') || [];
+    const pts = Store.get('points');
+    const completed = tasks.filter(t => t.status === 'completed').length;
+
+    return `
+    <div class="space-y-6 fade-in">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">${t('dashboard.welcome')}, ${user.firstName || 'User'}!</h1>
+          <p class="text-gray-500 mt-1">${t('app.tagline')}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 flex items-center gap-3">
+            <span class="w-5 h-5 text-yellow-500">${icons.trophy}</span>
+            <div><p class="text-sm font-semibold">${t('gamification.level')} ${pts.level}</p><p class="text-xs text-gray-500">${pts.points} ${t('gamification.points')}</p></div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 flex items-center gap-3">
+            <span class="w-5 h-5 text-orange-500">${icons.bolt}</span>
+            <p class="text-sm font-semibold">${pts.streak_days} ${t('gamification.streak')}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        ${[
+          { label: t('dashboard.totalTasks'), val: tasks.length, icon: 'tasks', color: 'text-blue-600', bg: 'bg-blue-100' },
+          { label: t('dashboard.completed'), val: completed, icon: 'check', color: 'text-green-600', bg: 'bg-green-100' },
+          { label: t('dashboard.aiChats'), val: convos.length, icon: 'chat', color: 'text-purple-600', bg: 'bg-purple-100' },
+          { label: 'Active Streak', val: pts.streak_days + ' days', icon: 'trending', color: 'text-orange-600', bg: 'bg-orange-100' },
+        ].map(s => `
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+            <div class="w-12 h-12 ${s.bg} rounded-lg flex items-center justify-center"><span class="w-6 h-6 ${s.color}">${icons[s.icon]}</span></div>
+            <div><p class="text-2xl font-bold text-gray-900">${s.val}</p><p class="text-sm text-gray-500">${s.label}</p></div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">${t('dashboard.quickActions')}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          ${[
+            { label: 'New AI Chat', icon: 'chat', page: 'chat', color: 'bg-purple-600' },
+            { label: 'Create Task', icon: 'plus', page: 'tasks', color: 'bg-blue-600' },
+            { label: 'View Analytics', icon: 'trending', page: 'analytics', color: 'bg-green-600' },
+          ].map(a => `
+            <button onclick="navigate('${a.page}')" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer group">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 ${a.color} rounded-lg flex items-center justify-center"><span class="w-5 h-5 text-white">${icons[a.icon]}</span></div>
+                <span class="font-medium text-gray-900">${a.label}</span>
+              </div>
+              <span class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors">${icons.arrow}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">${t('dashboard.recentActivity')}</h2>
+        ${tasks.length > 0 ? `
+          <div class="space-y-3">
+            ${tasks.slice(-5).reverse().map(task => `
+              <div class="flex items-center gap-3 text-sm">
+                <span class="w-2 h-2 rounded-full ${task.status === 'completed' ? 'bg-green-500' : task.status === 'in_progress' ? 'bg-blue-500' : 'bg-yellow-500'}"></span>
+                <span class="text-gray-700">${task.title}</span>
+                <span class="ml-auto text-xs text-gray-400">${new Date(task.createdAt).toLocaleDateString()}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="text-center py-8 text-gray-400">
+            <span class="w-12 h-12 mx-auto block opacity-30 mb-3">${icons.chat}</span>
+            <p>Start using Lovable Bolt to see your activity here</p>
+          </div>
+        `}
+      </div>
+
+      ${renderAchievementsSection()}
+    </div>`;
+  }
+
+  function renderAchievementsSection() {
+    const achievements = [
+      { name: 'First Login', desc: 'Welcome! You logged in.', icon: 'trophy', earned: true },
+      { name: 'Chat Starter', desc: 'Started your first AI conversation.', icon: 'chat', earned: (Store.get('conversations')||[]).length > 0 },
+      { name: 'Task Master', desc: 'Completed 10 tasks.', icon: 'check', earned: (Store.get('tasks')||[]).filter(t=>t.status==='completed').length >= 10 },
+      { name: 'Power User', desc: 'Active for 7 days.', icon: 'bolt', earned: Store.get('points').streak_days >= 7 },
+      { name: 'Data Analyst', desc: 'Viewed analytics 5 times.', icon: 'analytics', earned: false },
+    ];
+    return `
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">${t('gamification.achievements')}</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        ${achievements.map(a => `
+          <div class="text-center p-4 rounded-lg ${a.earned ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50 border border-gray-200 opacity-50'}">
+            <span class="w-8 h-8 mx-auto block ${a.earned ? 'text-primary-600' : 'text-gray-400'}">${icons[a.icon]}</span>
+            <p class="text-sm font-medium mt-2 ${a.earned ? 'text-primary-700' : 'text-gray-500'}">${a.name}</p>
+            <p class="text-xs text-gray-400 mt-1">${a.desc}</p>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  // --- Chat Page ---
+  function renderChat() {
+    const convos = Store.get('conversations') || [];
+    const msgs = Store.get('chatMessages') || [];
+    const currentConv = Store.get('currentConversation');
+
+    return `
+    <div class="flex h-[calc(100vh-7rem)] fade-in">
+      <div class="w-64 bg-white border-r border-gray-200 flex flex-col rounded-l-xl flex-shrink-0">
+        <div class="p-3 border-b border-gray-100">
+          <button onclick="newConversation()" class="w-full py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
+            <span class="w-4 h-4">${icons.plus}</span> ${t('chat.new')}
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-2 space-y-1">
+          ${convos.length === 0 ? '<p class="text-center text-sm text-gray-400 mt-8">No conversations yet</p>' :
+            convos.map((c,i) => `
+              <button onclick="loadConversation(${i})" class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors truncate ${currentConv === i ? 'bg-primary-50 text-primary-700' : 'text-gray-700'}">
+                <span class="w-3.5 h-3.5 inline-block mr-2 opacity-50">${icons.chat}</span>${c.title}
+              </button>
+            `).join('')}
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col bg-white rounded-r-xl">
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+          ${msgs.length === 0 ? `
+            <div class="flex flex-col items-center justify-center h-full text-gray-400">
+              <span class="w-16 h-16 opacity-30 mb-4">${icons.bot}</span>
+              <h3 class="text-lg font-medium text-gray-600">Lovable Bolt AI</h3>
+              <p class="text-sm mt-1">Ask me anything. I'm here to help.</p>
+            </div>
+          ` : msgs.map(m => `
+            <div class="flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+              ${m.role === 'assistant' ? `<div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0"><span class="w-4 h-4 text-primary-600">${icons.bot}</span></div>` : ''}
+              <div class="max-w-[70%] px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${m.role === 'user' ? 'bg-primary-600 text-white chat-bubble-user' : 'bg-gray-100 text-gray-800 chat-bubble-ai'}">${formatMessage(m.content)}</div>
+              ${m.role === 'user' ? `<div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0"><span class="w-4 h-4 text-gray-600">${icons.user}</span></div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+        <form id="chat-form" class="p-4 border-t border-gray-100">
+          <div class="flex items-center gap-2">
+            <input type="text" id="chat-input" placeholder="${t('chat.placeholder')}" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition">
+            <button type="submit" class="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"><span class="w-4 h-4">${icons.send}</span></button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+  }
+
+  function formatMessage(text) {
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  }
+
+  // --- Tasks Page ---
+  function renderTasks() {
+    const tasks = Store.get('tasks') || [];
+    const filter = Store.get('taskFilter') || 'all';
+    const filtered = filter === 'all' ? tasks : tasks.filter(t => t.status === filter);
+    const statusIcons = { pending: 'clock', in_progress: 'loader', completed: 'check', failed: 'x' };
+    const statusColors = { pending: 'text-yellow-600 bg-yellow-100', in_progress: 'text-blue-600 bg-blue-100', completed: 'text-green-600 bg-green-100', failed: 'text-red-600 bg-red-100' };
+    const priorityColors = { low: 'bg-blue-100 text-blue-800', medium: 'bg-yellow-100 text-yellow-800', high: 'bg-orange-100 text-orange-800', critical: 'bg-red-100 text-red-800' };
+
+    return `
+    <div class="space-y-6 fade-in">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">${t('nav.tasks')}</h1>
+        <button onclick="showCreateTask()" class="px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
+          <span class="w-4 h-4">${icons.plus}</span> ${t('tasks.create')}
+        </button>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        ${['all','pending','in_progress','completed','failed'].map(s => `
+          <button onclick="setTaskFilter('${s}')" class="px-3 py-1.5 text-sm rounded-lg transition-colors ${filter === s ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}">
+            ${s === 'all' ? 'All' : s === 'in_progress' ? t('tasks.inProgress') : t('tasks.' + s)}
+          </button>
+        `).join('')}
+      </div>
+      <div id="create-task-form" class="hidden">
+        <div class="bg-white rounded-xl shadow-sm border-2 border-primary-200 p-6">
+          <h3 class="text-lg font-semibold mb-4">${t('tasks.create')}</h3>
+          <form id="task-form" class="space-y-3">
+            <input type="text" id="task-title" placeholder="${t('tasks.title')}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" required>
+            <textarea id="task-desc" placeholder="${t('tasks.description')}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" rows="3"></textarea>
+            <select id="task-priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+              <option value="low">${t('tasks.low')}</option><option value="medium" selected>${t('tasks.medium')}</option><option value="high">${t('tasks.high')}</option><option value="critical">${t('tasks.critical')}</option>
+            </select>
+            <div class="flex gap-2">
+              <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">${t('common.save')}</button>
+              <button type="button" onclick="hideCreateTask()" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">${t('common.cancel')}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      ${filtered.length === 0 ? `
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
+          <span class="w-12 h-12 mx-auto block opacity-30 mb-3">${icons.tasks}</span>
+          <p>${t('common.noResults')}</p>
+        </div>
+      ` : `
+        <div class="space-y-3">
+          ${filtered.map((task, idx) => {
+            const sc = statusColors[task.status] || statusColors.pending;
+            const pc = priorityColors[task.priority] || priorityColors.medium;
+            const si = statusIcons[task.status] || 'clock';
+            return `
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between slide-up">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 ${sc.split(' ')[1]} rounded-lg flex items-center justify-center"><span class="w-5 h-5 ${sc.split(' ')[0]}">${icons[si]}</span></div>
+                <div>
+                  <h3 class="font-medium text-gray-900">${task.title}</h3>
+                  ${task.description ? `<p class="text-sm text-gray-500 mt-0.5">${task.description}</p>` : ''}
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pc}">${task.priority}</span>
+                ${task.status !== 'completed' ? `
+                  <button onclick="completeTask(${tasks.indexOf(task)})" class="text-sm text-green-600 hover:text-green-700 font-medium">Complete</button>
+                ` : ''}
+                <button onclick="deleteTask(${tasks.indexOf(task)})" class="text-sm text-red-500 hover:text-red-600 font-medium">${t('common.delete')}</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      `}
+    </div>`;
+  }
+
+  // --- Analytics Page ---
+  function renderAnalytics() {
+    const tasks = Store.get('tasks') || [];
+    const convos = Store.get('conversations') || [];
+    const completed = tasks.filter(t => t.status === 'completed').length;
+    const rate = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
+    const msgs = Store.get('chatMessages') || [];
+
+    return `
+    <div class="space-y-6 fade-in">
+      <h1 class="text-2xl font-bold text-gray-900">${t('nav.analytics')}</h1>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        ${[
+          { label: 'Total Tasks', val: tasks.length, icon: 'tasks', color: 'text-blue-600', bg: 'bg-blue-100' },
+          { label: 'Completed', val: completed, icon: 'check', color: 'text-green-600', bg: 'bg-green-100' },
+          { label: 'AI Messages', val: msgs.length, icon: 'chat', color: 'text-purple-600', bg: 'bg-purple-100' },
+          { label: 'Conversations', val: convos.length, icon: 'bot', color: 'text-orange-600', bg: 'bg-orange-100' },
+        ].map(c => `
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm text-gray-500">${c.label}</span>
+              <div class="w-10 h-10 ${c.bg} rounded-lg flex items-center justify-center"><span class="w-5 h-5 ${c.color}">${icons[c.icon]}</span></div>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">${c.val}</p>
+          </div>
+        `).join('')}
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Task Completion Rate</h3>
+          <div class="flex items-end gap-4">
+            <span class="text-4xl font-bold text-primary-600">${rate}%</span>
+            <span class="text-sm text-gray-500 mb-1">${completed} of ${tasks.length} tasks</span>
+          </div>
+          <div class="mt-4 h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-full bg-primary-500 rounded-full transition-all duration-500" style="width:${rate}%"></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Task Priority Distribution</h3>
+          ${tasks.length > 0 ? `
+            <div class="space-y-3">
+              ${['low','medium','high','critical'].map(p => {
+                const count = tasks.filter(t => t.priority === p).length;
+                const pct = tasks.length > 0 ? Math.round((count / tasks.length) * 100) : 0;
+                const colors = { low: 'bg-blue-500', medium: 'bg-yellow-500', high: 'bg-orange-500', critical: 'bg-red-500' };
+                return `
+                  <div>
+                    <div class="flex justify-between text-sm mb-1"><span class="text-gray-600 capitalize">${p}</span><span class="font-medium">${count} (${pct}%)</span></div>
+                    <div class="h-2 bg-gray-100 rounded-full"><div class="${colors[p]} h-full rounded-full" style="width:${pct}%"></div></div>
+                  </div>`;
+              }).join('')}
+            </div>
+          ` : '<p class="text-gray-400 text-sm">No tasks yet</p>'}
+        </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Performance Overview</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div><p class="text-sm text-gray-500">Points Earned</p><p class="text-2xl font-bold text-gray-900">${Store.get('points').points}</p></div>
+          <div><p class="text-sm text-gray-500">Current Level</p><p class="text-2xl font-bold text-gray-900">${Store.get('points').level}</p></div>
+          <div><p class="text-sm text-gray-500">Active Streak</p><p class="text-2xl font-bold text-gray-900">${Store.get('points').streak_days} days</p></div>
+          <div><p class="text-sm text-gray-500">Engagement</p><p class="text-2xl font-bold text-gray-900">${tasks.length + msgs.length} actions</p></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // --- Settings Page ---
+  function renderSettings() {
+    const user = Store.get('user') || {};
+    return `
+    <div class="max-w-2xl space-y-6 fade-in">
+      <h1 class="text-2xl font-bold text-gray-900">${t('nav.settings')}</h1>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center gap-3 mb-4"><span class="w-5 h-5 text-gray-400">${icons.user}</span><h2 class="text-lg font-semibold">${t('settings.profile')}</h2></div>
+        <form id="settings-form" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.firstName')}</label><input type="text" id="set-first" value="${user.firstName||''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.lastName')}</label><input type="text" id="set-last" value="${user.lastName||''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"></div>
+          </div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">${t('auth.email')}</label><input type="email" value="${user.email||''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" disabled></div>
+          <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"><span class="w-4 h-4">${icons.save}</span> ${t('common.save')}</button>
+          <p id="settings-saved" class="hidden text-sm text-green-600">Profile saved successfully!</p>
+        </form>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center gap-3 mb-4"><span class="w-5 h-5 text-gray-400">${icons.globe}</span><h2 class="text-lg font-semibold">${t('settings.language')}</h2></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          ${languages.map(l => `
+            <button onclick="changeLanguage('${l.code}')" class="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${Store.get('language') === l.code ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">${l.name}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center gap-3 mb-4"><span class="w-5 h-5 text-gray-400">${icons.admin}</span><h2 class="text-lg font-semibold">${t('settings.security')}</h2></div>
+        <div class="space-y-3 text-sm text-gray-600">
+          <div class="flex items-center justify-between py-2 border-b border-gray-100"><span>Two-factor authentication</span><span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Coming soon</span></div>
+          <div class="flex items-center justify-between py-2 border-b border-gray-100"><span>Active sessions</span><span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">1 session</span></div>
+          <div class="flex items-center justify-between py-2"><span>Account role</span><span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">${user.role || 'user'}</span></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // --- Admin Page ---
+  function renderAdmin() {
+    const user = Store.get('user') || {};
+    const tasks = Store.get('tasks') || [];
+    const convos = Store.get('conversations') || [];
+    const tab = Store.get('adminTab') || 'users';
+
+    const mockUsers = [
+      { ...user, id: 1 },
+      { firstName: 'Alice', lastName: 'Johnson', email: 'alice@example.com', role: 'user', active: true, lastLogin: new Date().toISOString() },
+      { firstName: 'Bob', lastName: 'Smith', email: 'bob@example.com', role: 'moderator', active: true, lastLogin: null },
+    ];
+
+    return `
+    <div class="space-y-6 fade-in">
+      <div class="flex items-center gap-3"><span class="w-7 h-7 text-primary-600">${icons.admin}</span><h1 class="text-2xl font-bold text-gray-900">${t('nav.admin')}</h1></div>
+      <div class="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
+        ${[{id:'users',label:'Users',icon:'users'},{id:'health',label:'System Health',icon:'server'},{id:'logs',label:'Activity',icon:'activity'}].map(tb => `
+          <button onclick="Store.set({adminTab:'${tb.id}'});render()" class="flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors ${tab===tb.id?'bg-white text-gray-900 shadow-sm':'text-gray-500 hover:text-gray-700'}">
+            <span class="w-4 h-4">${icons[tb.icon]}</span> ${tb.label}
+          </button>
+        `).join('')}
+      </div>
+      ${tab === 'users' ? `
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr><th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">User</th><th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Role</th><th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th><th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Last Login</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              ${mockUsers.map(u => `
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">${u.firstName} ${u.lastName}</p><p class="text-xs text-gray-500">${u.email}</p></td>
+                  <td class="px-6 py-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${u.role==='admin'?'bg-red-100 text-red-800':'bg-blue-100 text-blue-800'}">${u.role}</span></td>
+                  <td class="px-6 py-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span></td>
+                  <td class="px-6 py-4 text-sm text-gray-500">${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : tab === 'health' ? `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><h3 class="text-sm font-medium text-gray-500 mb-2">System Status</h3><p class="text-2xl font-bold text-green-600">Healthy</p></div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><h3 class="text-sm font-medium text-gray-500 mb-2">Database</h3><p class="text-2xl font-bold text-green-600">Connected</p></div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><h3 class="text-sm font-medium text-gray-500 mb-2">Total Tasks</h3><p class="text-2xl font-bold text-gray-900">${tasks.length}</p></div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><h3 class="text-sm font-medium text-gray-500 mb-2">AI Conversations</h3><p class="text-2xl font-bold text-gray-900">${convos.length}</p></div>
+        </div>
+      ` : `
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div class="space-y-3">
+            ${tasks.slice(-10).reverse().map(task => `
+              <div class="flex items-center gap-3 text-sm py-2 border-b border-gray-50">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span class="text-gray-500">${new Date(task.createdAt).toLocaleString()}</span>
+                <span class="text-gray-700">Task "${task.title}" - ${task.status}</span>
+              </div>
+            `).join('') || '<p class="text-gray-400 text-center py-8">No activity recorded yet</p>'}
+          </div>
+        </div>
+      `}
+    </div>`;
+  }
+
+  // --- Notifications Page ---
+  function renderNotifications() {
+    const notifs = Store.get('notifications') || [];
+    return `
+    <div class="max-w-2xl space-y-6 fade-in">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">${t('nav.notifications')}</h1>
+        ${notifs.filter(n=>!n.read).length > 0 ? `<button onclick="markAllRead()" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Mark all as read</button>` : ''}
+      </div>
+      ${notifs.length === 0 ? `
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
+          <span class="w-12 h-12 mx-auto block opacity-30 mb-3">${icons.bell}</span>
+          <p>No notifications yet</p>
+        </div>
+      ` : `
+        <div class="space-y-3">
+          ${notifs.map((n, i) => `
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-start gap-4 ${!n.read ? 'border-l-4 border-l-primary-500' : ''}">
+              <span class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${n.type==='success'?'bg-green-100 text-green-600':n.type==='warning'?'bg-yellow-100 text-yellow-600':n.type==='error'?'bg-red-100 text-red-600':'bg-blue-100 text-blue-600'}">
+                <span class="w-4 h-4">${n.type==='success'?icons.check:n.type==='warning'?icons.alert:icons.bell}</span>
+              </span>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">${n.title}</p>
+                <p class="text-sm text-gray-500 mt-0.5">${n.message}</p>
+                <p class="text-xs text-gray-400 mt-1">${new Date(n.createdAt).toLocaleString()}</p>
+              </div>
+              ${!n.read ? `<button onclick="markNotifRead(${i})" class="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0">Mark read</button>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>`;
+  }
+
+  // --- Event Handlers ---
+  function attachEvents() {
+    // Login form
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        if (email && password.length >= 6) {
+          const savedState = localStorage.getItem('lovable_bolt_state');
+          let user = { firstName: 'User', lastName: '', email, role: 'admin' };
+          if (savedState) {
+            const parsed = JSON.parse(savedState);
+            if (parsed.user && parsed.user.email === email) {
+              user = parsed.user;
+            }
+          }
+          Store.set({
+            isAuthenticated: true,
+            user: user,
+            currentPage: 'dashboard',
+            points: Store.get('points') || { points: 10, level: 1, streak_days: 1 },
+          });
+          addNotification('Welcome!', 'You have successfully logged in.', 'success');
+          addPoints(10);
+          render();
+        }
+      });
+    }
+
+    // Register form
+    const regForm = document.getElementById('register-form');
+    if (regForm) {
+      regForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const user = {
+          firstName: document.getElementById('reg-first').value,
+          lastName: document.getElementById('reg-last').value,
+          email: document.getElementById('reg-email').value,
+          role: 'admin',
+        };
+        Store.set({
+          isAuthenticated: true,
+          user,
+          currentPage: 'dashboard',
+          points: { points: 10, level: 1, streak_days: 1 },
+        });
+        addNotification('Welcome!', 'Your account has been created. You earned 10 points!', 'success');
+        render();
+      });
+    }
+
+    // Chat form
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+        
+        let msgs = Store.get('chatMessages') || [];
+        let convos = Store.get('conversations') || [];
+        let currentConv = Store.get('currentConversation');
+        
+        if (currentConv === null) {
+          convos.push({ title: msg.substring(0, 40), createdAt: new Date().toISOString() });
+          currentConv = convos.length - 1;
+        }
+        
+        msgs.push({ role: 'user', content: msg });
+        Store.set({ chatMessages: msgs, conversations: convos, currentConversation: currentConv });
+        input.value = '';
+        render();
+        
+        // Simulate AI thinking
+        setTimeout(() => {
+          const response = getAIResponse(msg);
+          msgs = Store.get('chatMessages') || [];
+          msgs.push({ role: 'assistant', content: response });
+          Store.set({ chatMessages: msgs });
+          addPoints(5);
+          render();
+          // Scroll to bottom
+          const chatDiv = document.getElementById('chat-messages');
+          if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
+        }, 800 + Math.random() * 1200);
+      });
+    }
+
+    // Task form
+    const taskForm = document.getElementById('task-form');
+    if (taskForm) {
+      taskForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('task-title').value;
+        const desc = document.getElementById('task-desc').value;
+        const priority = document.getElementById('task-priority').value;
+        const tasks = Store.get('tasks') || [];
+        tasks.push({ title, description: desc, priority, status: 'pending', createdAt: new Date().toISOString() });
+        Store.set({ tasks });
+        addNotification('Task Created', `"${title}" has been added to your tasks.`, 'info');
+        addPoints(5);
+        hideCreateTask();
+        render();
+      });
+    }
+
+    // Settings form
+    const settingsForm = document.getElementById('settings-form');
+    if (settingsForm) {
+      settingsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const user = Store.get('user') || {};
+        user.firstName = document.getElementById('set-first').value;
+        user.lastName = document.getElementById('set-last').value;
+        Store.set({ user });
+        const saved = document.getElementById('settings-saved');
+        if (saved) { saved.classList.remove('hidden'); setTimeout(() => saved.classList.add('hidden'), 3000); }
+      });
+    }
+
+    // Scroll chat to bottom on load
+    const chatDiv = document.getElementById('chat-messages');
+    if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
+
+  // --- Action Functions ---
+  function navigate(page) {
+    Store.set({ currentPage: page });
+    closeDropdowns();
+    render();
+  }
+  window.navigate = navigate;
+
+  function toggleSidebar() {
+    Store.set({ sidebarOpen: !Store.get('sidebarOpen') });
+    render();
+  }
+  window.toggleSidebar = toggleSidebar;
+
+  function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      const wasHidden = el.classList.contains('hidden');
+      closeDropdowns();
+      if (wasHidden) el.classList.remove('hidden');
+    }
+  }
+  window.toggleDropdown = toggleDropdown;
+
+  function closeDropdowns() {
+    document.querySelectorAll('#lang-menu, #user-menu').forEach(el => el.classList.add('hidden'));
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('[onclick*="toggleDropdown"]')) closeDropdowns();
+  });
+
+  function changeLanguage(code) {
+    const lang = languages.find(l => l.code === code);
+    Store.set({ language: code });
+    document.documentElement.lang = code;
+    document.documentElement.dir = lang ? lang.dir : 'ltr';
+    closeDropdowns();
+    render();
+  }
+  window.changeLanguage = changeLanguage;
+
+  function doLogout() {
+    Store.set({ isAuthenticated: false, user: null, currentPage: 'landing' });
+    closeDropdowns();
+    render();
+  }
+  window.doLogout = doLogout;
+
+  function newConversation() {
+    Store.set({ chatMessages: [], currentConversation: null });
+    render();
+  }
+  window.newConversation = newConversation;
+
+  function loadConversation(idx) {
+    // In this standalone version, we reset messages for simplicity
+    Store.set({ currentConversation: idx, chatMessages: [] });
+    render();
+  }
+  window.loadConversation = loadConversation;
+
+  function showCreateTask() { document.getElementById('create-task-form')?.classList.remove('hidden'); }
+  window.showCreateTask = showCreateTask;
+  function hideCreateTask() { document.getElementById('create-task-form')?.classList.add('hidden'); }
+  window.hideCreateTask = hideCreateTask;
+
+  function setTaskFilter(f) { Store.set({ taskFilter: f }); render(); }
+  window.setTaskFilter = setTaskFilter;
+
+  function completeTask(idx) {
+    const tasks = Store.get('tasks') || [];
+    if (tasks[idx]) {
+      tasks[idx].status = 'completed';
+      Store.set({ tasks });
+      addNotification('Task Completed', `"${tasks[idx].title}" marked as done!`, 'success');
+      addPoints(20);
+      render();
+    }
+  }
+  window.completeTask = completeTask;
+
+  function deleteTask(idx) {
+    const tasks = Store.get('tasks') || [];
+    if (tasks[idx]) {
+      const title = tasks[idx].title;
+      tasks.splice(idx, 1);
+      Store.set({ tasks });
+      addNotification('Task Deleted', `"${title}" has been removed.`, 'warning');
+      render();
+    }
+  }
+  window.deleteTask = deleteTask;
+
+  function addNotification(title, message, type = 'info') {
+    const notifs = Store.get('notifications') || [];
+    notifs.unshift({ title, message, type, read: false, createdAt: new Date().toISOString() });
+    Store.set({ notifications: notifs.slice(0, 50) });
+  }
+
+  function addPoints(amount) {
+    const pts = Store.get('points') || { points: 0, level: 1, streak_days: 0 };
+    pts.points += amount;
+    pts.level = Math.max(1, Math.floor(pts.points / 100) + 1);
+    pts.streak_days = Math.max(pts.streak_days, 1);
+    Store.set({ points: pts });
+  }
+
+  function markNotifRead(idx) {
+    const notifs = Store.get('notifications') || [];
+    if (notifs[idx]) { notifs[idx].read = true; Store.set({ notifications: notifs }); render(); }
+  }
+  window.markNotifRead = markNotifRead;
+
+  function markAllRead() {
+    const notifs = (Store.get('notifications') || []).map(n => ({ ...n, read: true }));
+    Store.set({ notifications: notifs });
+    render();
+  }
+  window.markAllRead = markAllRead;
+
+  // --- Initialize ---
+  Store.init();
+  Store.subscribe(() => Store.save());
+  render();
+
+  </script>
+</body>
+</html>

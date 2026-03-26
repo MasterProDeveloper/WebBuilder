@@ -1,0 +1,38 @@
+{
+  "app": {
+    "name": "Lovable Bolt",
+    "tagline": "KI-gestuetzte Plattform fuer komplexe Aufgaben"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "chat": "KI-Chat",
+    "tasks": "Aufgaben",
+    "analytics": "Analytik",
+    "notifications": "Benachrichtigungen",
+    "settings": "Einstellungen",
+    "admin": "Admin-Panel",
+    "logout": "Abmelden"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "forgotPassword": "Passwort vergessen?",
+    "noAccount": "Kein Konto?",
+    "hasAccount": "Bereits ein Konto?"
+  },
+  "common": {
+    "search": "Suchen...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Loeschen",
+    "edit": "Bearbeiten",
+    "loading": "Laden...",
+    "noResults": "Keine Ergebnisse",
+    "confirm": "Bestaetigen",
+    "back": "Zurueck"
+  }
+}

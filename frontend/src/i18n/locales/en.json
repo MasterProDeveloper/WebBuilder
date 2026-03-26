@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "Lovable Bolt",
+    "tagline": "AI-Powered Platform for Complex Tasks"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "chat": "AI Chat",
+    "tasks": "Tasks",
+    "analytics": "Analytics",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "admin": "Admin Panel",
+    "logout": "Log Out"
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {{name}}",
+    "totalTasks": "Total Tasks",
+    "completedTasks": "Completed",
+    "activeUsers": "Active Users",
+    "aiConversations": "AI Conversations",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "performance": "Performance"
+  },
+  "chat": {
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "newConversation": "New Conversation",
+    "history": "Conversation History",
+    "thinking": "Thinking..."
+  },
+  "tasks": {
+    "create": "Create Task",
+    "title": "Title",
+    "description": "Description",
+    "status": "Status",
+    "priority": "Priority",
+    "dueDate": "Due Date",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "failed": "Failed",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "gamification": {
+    "points": "Points",
+    "level": "Level",
+    "streak": "Day Streak",
+    "achievements": "Achievements",
+    "leaderboard": "Leaderboard"
+  },
+  "common": {
+    "search": "Search...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "back": "Back"
+  }
+}

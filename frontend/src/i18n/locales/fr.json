@@ -1,0 +1,38 @@
+{
+  "app": {
+    "name": "Lovable Bolt",
+    "tagline": "Plateforme IA pour des taches complexes"
+  },
+  "nav": {
+    "dashboard": "Tableau de Bord",
+    "chat": "Chat IA",
+    "tasks": "Taches",
+    "analytics": "Analytiques",
+    "notifications": "Notifications",
+    "settings": "Parametres",
+    "admin": "Panneau Admin",
+    "logout": "Deconnexion"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "firstName": "Prenom",
+    "lastName": "Nom",
+    "forgotPassword": "Mot de passe oublie?",
+    "noAccount": "Pas de compte?",
+    "hasAccount": "Deja un compte?"
+  },
+  "common": {
+    "search": "Rechercher...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "loading": "Chargement...",
+    "noResults": "Aucun resultat",
+    "confirm": "Confirmer",
+    "back": "Retour"
+  }
+}
